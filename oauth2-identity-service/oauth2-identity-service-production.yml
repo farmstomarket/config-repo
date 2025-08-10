@@ -1,0 +1,48 @@
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none  # No DDL auto in production
+
+jwt:
+  access-token:
+    validity: 1800  # 30 minutes in production (more secure)
+  refresh-token:
+    validity: 604800  # 7 days
+
+security:
+  cors:
+    allowed-origins:
+      - https://app.ndinga-eats.com
+      - https://admin.ndinga-eats.com
+    # Remove localhost and development origins
+
+rate-limiting:
+  oauth2:
+    authorization-requests: 5/minute  # Stricter in production
+    token-requests: 10/minute
+  social-login:
+    attempts: 3/minute
+
+account-security:
+  password-policy:
+    max-attempts: 3  # Stricter in production
+    lockout-duration: 30m
+  session-management:
+    max-concurrent-sessions: 2  # Limit concurrent sessions
+    session-timeout: 15m  # Shorter timeout
+
+audit:
+  storage:
+    retention: P365D  # 1 year retention in production
+
+logging:
+  level:
+    com.ndingaeats.oauth2: INFO
+    org.springframework.security.oauth2: WARN
+    org.springframework.security: WARN
+
+management:
+  tracing:
+    sampling:
+      probability: 0.01
