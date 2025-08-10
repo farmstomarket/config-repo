@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: my-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/prod_db
+    username: prod_user
+    password: prod_password
+  logging:
+    level:
+      root: WARN
+      com.yourpackage: ERROR
+  cloud:
+    config:
+      profile: prod

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: my-service
+  cloud:
+    config:
+      label: main
+      server:
+        git:
+          uri: https://github.com/Farm-sToMarket/config-repo.git
+          search-paths: '{application}'
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_PASSWORD}
+  datasource:
+    url: jdbc:mysql://localhost:3306/default_db
+    username: default_user
+    password: default_password
+  logging:
+    level:
+      root: INFO
+      com.yourpackage: DEBUG

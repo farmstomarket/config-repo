@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: my-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/dev_db
+    username: dev_user
+    password: dev_password
+  logging:
+    level:
+      root: DEBUG
+      com.yourpackage: TRACE
+  cloud:
+    config:
+      profile: dev
