@@ -8,17 +8,17 @@ spring:
     redis:
       host: dev-redis.synthi-ai.org
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
       timeout: 2000
+      password: ${REDIS_DEV_PASSWORD}
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        spring.json.type.mapping: transportEvent:com.agriconnect.transportmanagement.kafka.model.TransportEvent
     consumer:
       group-id: transport-management-group-dev
       properties:
         spring.json.trusted.packages: com.agriconnect.*
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        spring.json.type.mapping: transportEvent:com.agriconnect.transportmanagement.kafka.model.TransportEvent
   cache:
     type: redis
     redis:
@@ -59,27 +59,12 @@ server:
   port: 8083
   servlet:
     context-path: /api/v1
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-    mongodb:
-      enabled: true
-    redis:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 resilience4j:
   circuitbreaker:
     instances:
@@ -95,11 +80,11 @@ resilience4j:
   retry:
     instances:
       driverManagementService:
-        maxRetryAttempts: 3
         waitDuration: 1s
         retryExceptions:
         - java.io.IOException
         - java.net.ConnectException
+        maxRetryAttempts: 3
 kafka:
   topics:
     vehicle-created: transport.vehicle_created.dev
@@ -127,6 +112,27 @@ grpc:
     driver-management-service:
       host: dev-driver-management.synthi-ai.org
       port: 9090
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    mongodb:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS

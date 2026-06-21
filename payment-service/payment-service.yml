@@ -1,5 +1,7 @@
 server:
   port: 9024
+  servlet:
+    context-path: /payment-service
 spring:
   application:
     name: payment-service
@@ -9,26 +11,49 @@ spring:
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
+      connection-timeout: 20000
       maximum-pool-size: 20
       minimum-idle: 5
-      connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 600000
       leak-detection-threshold: 60000
       validation-timeout: 5000
       connection-test-query: SELECT 1
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-  data:
-    redis:
-      timeout: 300000
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  redis:
+    host: redis
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    timeout: 10000
+    database: 0
   kafka:
     consumer:
       group-id: payment-service-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
+  cloud:
+    vault:
+      enabled: true
+      token: ${VAULT_TOKEN}
+      uri: http://vault:8200
+      kv:
+        enabled: true
+        backend: secret
+        default-context: payment
+  data:
+    redis:
+      timeout: 300000
   task:
     execution:
       pool:
@@ -36,30 +61,43 @@ spring:
         max-size: 20
         queue-capacity: 100
         keep-alive: 60s
-app:
-  kafka:
-    topics:
-      payment:
-        initiated: payment.payment.initiated
-        authorized: payment.payment.authorized
-        captured: payment.payment.captured
-        completed: payment.payment.completed
-        failed: payment.payment.failed
-        refunded: payment.payment.refunded
-        cancelled: payment.payment.cancelled
-      transaction:
-        recorded: payment.transaction.recorded
-        disputed: payment.transaction.disputed
-        settled: payment.transaction.settled
-      consumer:
-        orders: marketplace.order.*
-        refunds: marketplace.refund.*
-    dlq:
-      suffix: .dlq
-      retry-suffix: .retry
-      max-retries: 3
-      retry-delay: 5000
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
 payment:
+  stripe:
+    apiKey: ${STRIPE_API_KEY}
+    webhookSecret: ${STRIPE_WEBHOOK_SECRET}
+  flutterwave:
+    apiUrl: https://api.flutterwave.com/v3
+    secretKey: ${FLUTTERWAVE_SECRET_KEY}
+    encryptionKey: ${FLUTTERWAVE_ENCRYPTION_KEY}
+    webhookSecret: ${FLUTTERWAVE_WEBHOOK_SECRET}
+    redirectUrl: https://stackfood.com/payment/callback/flutterwave
+    webhookUrl: https://stackfood.com/payment-service/api/v1/webhooks/flutterwave
+  yellowcard:
+    apiUrl: https://api.yellowcard.io/v1
+    apiKey: ${YELLOWCARD_API_KEY}
+    webhookSecret: ${YELLOWCARD_WEBHOOK_SECRET}
+    defaultCurrency: USDT
+    callbackUrl: https://stackfood.com/payment/callback/yellowcard
+  paypal:
+    apiUrl: https://api.sandbox.paypal.com
+    clientId: ${PAYPAL_CLIENT_ID}
+    clientSecret: ${PAYPAL_CLIENT_SECRET}
+    webhookSecret: ${PAYPAL_WEBHOOK_SECRET}
+    mode: sandbox
+  paystack:
+    apiUrl: https://api.paystack.co
+    secretKey: ${PAYSTACK_SECRET_KEY}
+    publicKey: ${PAYSTACK_PUBLIC_KEY}
+    webhookSecret: ${PAYSTACK_WEBHOOK_SECRET}
+    callbackUrl: https://stackfood.com/payment/callback/paystack
   providers:
     stripe:
       enabled: true
@@ -90,6 +128,107 @@ payment:
     min-amount: 1.0
     max-amount: 1000.0
     daily-limit: 5000.0
+tax:
+  default:
+    platformFeePercentage: 5.0
+    platformFeeFixed: 100.0
+    processorFeePercentage: 2.5
+    processorFeeFixed: 0.0
+  vat:
+    CM: 19.25
+    NG: 7.5
+    CI: 18.0
+    GH: 12.5
+    KE: 16.0
+kafka:
+  topics:
+    payment-events: payment-events
+    tax-events: tax-events
+    fraud-events: fraud-events
+    order-notifications: order-notifications
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30000
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      stripeService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 40
+        waitDurationInOpenState: 60000
+      stripePayments:
+        base-config: default
+        failure-rate-threshold: 30
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+      paypalPayments:
+        base-config: default
+        failure-rate-threshold: 30
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+  retry:
+    instances:
+      paymentService:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      stripePayments:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 2s
+      paypalPayments:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 2s
+  timelimiter:
+    instances:
+      stripePayments:
+        timeout-duration: 80s
+      paypalPayments:
+        timeout-duration: 80s
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-request-duration: true
+    tags-sorter: alpha
+    operations-sorter: method
+cors:
+  allowed-origins: '*'
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: Authorization,Content-Type,X-Requested-With
+  max-age: 3600
+app:
+  kafka:
+    topics:
+      payment:
+        initiated: payment.payment.initiated
+        authorized: payment.payment.authorized
+        captured: payment.payment.captured
+        completed: payment.payment.completed
+        failed: payment.payment.failed
+        refunded: payment.payment.refunded
+        cancelled: payment.payment.cancelled
+      transaction:
+        recorded: payment.transaction.recorded
+        disputed: payment.transaction.disputed
+        settled: payment.transaction.settled
+      consumer:
+        orders: marketplace.order.*
+        refunds: marketplace.refund.*
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
 security:
   encryption:
     key: ${PAYMENT_ENCRYPTION_KEY}
@@ -101,32 +240,3 @@ security:
     enabled: true
     risk-threshold: 0.7
     velocity-checks: true
-resilience4j:
-  circuitbreaker:
-    instances:
-      stripePayments:
-        base-config: default
-        failure-rate-threshold: 30
-        wait-duration-in-open-state: 60s
-        sliding-window-size: 100
-      paypalPayments:
-        base-config: default
-        failure-rate-threshold: 30
-        wait-duration-in-open-state: 60s
-        sliding-window-size: 100
-  timelimiter:
-    instances:
-      stripePayments:
-        timeout-duration: 80s
-      paypalPayments:
-        timeout-duration: 80s
-  retry:
-    instances:
-      stripePayments:
-        base-config: default
-        max-attempts: 3
-        wait-duration: 2s
-      paypalPayments:
-        base-config: default
-        max-attempts: 3
-        wait-duration: 2s

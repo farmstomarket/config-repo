@@ -8,17 +8,17 @@ spring:
     redis:
       host: dev-redis.synthi-ai.org
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
       timeout: 2000
+      password: ${REDIS_DEV_PASSWORD}
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        spring.json.type.mapping: shipmentEvent:com.agriconnect.shipmenttracking.kafka.model.ShipmentEvent
     consumer:
       group-id: shipment-tracking-group-dev
       properties:
         spring.json.trusted.packages: com.i4u.*
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        spring.json.type.mapping: shipmentEvent:com.agriconnect.shipmenttracking.kafka.model.ShipmentEvent
   cache:
     type: redis
     redis:
@@ -69,27 +69,6 @@ server:
   port: 8084
   servlet:
     context-path: /api/v1
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-    mongodb:
-      enabled: true
-    redis:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
 resilience4j:
   circuitbreaker:
     instances:
@@ -120,6 +99,24 @@ resilience4j:
         waitDurationInOpenState: 5s
         failureRateThreshold: 50
         automaticTransitionFromOpenToHalfOpenEnabled: true
+      kafkaProducer:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      graphHopperService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
   retry:
     instances:
       traccarService:
@@ -140,6 +137,12 @@ resilience4j:
         retryExceptions:
         - java.io.IOException
         - java.net.ConnectException
+      kafkaProducer:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
 kafka:
   topics:
     shipment-created: shipment.created.dev
@@ -148,6 +151,11 @@ kafka:
     shipment-delivered: shipment.delivered.dev
     shipment-delayed: shipment.delayed.dev
     shipment-incident: shipment.incident.dev
+    shipment-tracking-events: shipment-tracking-events
+    route-optimization-events: route-optimization-events
+    notification-events: notification-events
+    driver-management-events: driver-management-events
+    transport-management-events: transport-management-events
   consumer:
     topics:
       transport-location-updated: transport.vehicle_location_updated.dev
@@ -165,6 +173,18 @@ grpc:
     delivery-service:
       host: dev-delivery.synthi-ai.org
       port: 9095
+    transport-management:
+      host: ${GRPC_TRANSPORT_MGMT_HOST:localhost}
+      port: ${GRPC_TRANSPORT_MGMT_PORT:9001}
+    route-optimization:
+      host: ${GRPC_ROUTE_OPT_HOST:localhost}
+      port: ${GRPC_ROUTE_OPT_PORT:9002}
+    driver-management:
+      host: ${GRPC_DRIVER_MGMT_HOST:localhost}
+      port: ${GRPC_DRIVER_MGMT_PORT:9003}
+    notification:
+      host: ${GRPC_NOTIFICATION_HOST:localhost}
+      port: ${GRPC_NOTIFICATION_PORT:9004}
 traccar:
   api-url: https://dev-traccar.synthi-ai.org:8082/api
   websocket-url: wss://dev-traccar.synthi-ai.org:8082/api/socket
@@ -175,6 +195,27 @@ traccar:
   update-interval-seconds: 30
   connection-timeout: 5000
   read-timeout: 30000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    mongodb:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS

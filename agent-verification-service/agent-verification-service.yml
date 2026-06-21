@@ -1,0 +1,83 @@
+server:
+  port: 9030
+spring:
+  application:
+    name: agent-verification-service
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/agent_verification_db}
+    auto-index-creation: true
+  kafka:
+    consumer:
+      group-id: agent-verification-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:https://oauth2-server.synthi-ai.com/.well-known/jwks.json}
+          issuer-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+app:
+  kafka:
+    topics:
+      verification-events: agent-verification.verification.events
+      pairing-events: agent-verification.pairing.events
+      task-events: agent-verification.task.events
+      farm-events: farm-management.farm.events
+      plantation-events: crop-management.plantation.events
+      harvest-events: harvest-management.harvest.events
+      storage-events: storage-management.storage.events
+      operation-requests: agent-verification.operation.requests
+      operation-responses: agent-verification.operation.responses
+      farm-operation-requests: farm-management.operation.requests
+      crop-operation-requests: crop-management.operation.requests
+      harvest-operation-requests: harvest-management.operation.requests
+      harvest-record-operation-requests: harvest-management.record.operation.requests
+      mission-completed-events: agent-verification.mission.completed
+      responses:
+        farm-management: farm-management.operation.responses
+        crop-management: crop-management.operation.responses
+        harvest-management: harvest-management.operation.responses
+        harvest-record-management: harvest-management.record.operation.responses
+        agent-verification: agent-verification.operation.responses
+      target-services:
+        farm-management: farm-management-service
+        crop-management: crop-management-service
+        harvest-management: harvest-management-service
+      event-types:
+        farm-operation-requested: FARM_OPERATION_REQUESTED
+        plantation-operation-requested: PLANTATION_OPERATION_REQUESTED
+        harvest-operation-requested: HARVEST_OPERATION_REQUESTED
+        verification-task-created: VERIFICATION_TASK_CREATED
+        verification-completed: VERIFICATION_COMPLETED
+        agent-pairing-completed: AGENT_PAIRING_COMPLETED
+        agent-pairing-expired: AGENT_PAIRING_EXPIRED
+        verification-task-assigned: VERIFICATION_TASK_ASSIGNED
+        verification-discrepancy-found: VERIFICATION_DISCREPANCY_FOUND
+    consumer:
+      group-id: agent-verification-service
+  verification:
+    default-timeout-minutes: 120
+    evidence-storage-path: /var/agent-verification/evidence
+    max-file-size-mb: 10
+    allowed-file-types: jpg,jpeg,png,pdf,mp4,mov
+  outbox:
+    poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:5000}
+    batch-size: ${OUTBOX_BATCH_SIZE:50}
+  pairing:
+    expiry-hours: 24
+    max-attempts: 3
+    cleanup-interval-minutes: 60
+  notification:
+    fcm:
+      enabled: false
+      url: https://fcm.googleapis.com/fcm/send
+      server-key: ${FCM_SERVER_KEY:}
+    websocket:
+      enabled: true
+      url: ${WEBSOCKET_NOTIFICATION_URL:http://20.116.218.195:8090}
+    email:
+      enabled: false
+      smtp-host: ${SMTP_HOST:}
+      smtp-port: ${SMTP_PORT:587}
+    sms:
+      enabled: false
+      provider: ${SMS_PROVIDER:}

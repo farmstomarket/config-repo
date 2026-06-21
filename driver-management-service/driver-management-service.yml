@@ -8,8 +8,22 @@ spring:
     redis:
       host: dev-redis.synthi-ai.org
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
       timeout: 2000
+      password: ${REDIS_DEV_PASSWORD}
+  kafka:
+    consumer:
+      group-id: driver-management-group-dev
+      properties:
+        spring.json.trusted.packages: com.agriconnect.*
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        spring.json.type.mapping: driverEvent:com.agriconnect.drivermanagement.kafka.model.DriverEvent
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
   cloud:
     config:
       uri: https://dev-config.synthi-ai.org:8888
@@ -32,20 +46,6 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        spring.json.type.mapping: driverEvent:com.agriconnect.drivermanagement.kafka.model.DriverEvent
-    consumer:
-      group-id: driver-management-group-dev
-      properties:
-        spring.json.trusted.packages: com.agriconnect.*
-  cache:
-    type: redis
-    redis:
-      time-to-live: 3600000
-      cache-null-values: false
   security:
     oauth2:
       resourceserver:
@@ -58,27 +58,12 @@ server:
   port: 8081
   servlet:
     context-path: /api/v1
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-    mongodb:
-      enabled: true
-    redis:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 feign:
   circuitbreaker:
     enabled: true
@@ -97,11 +82,11 @@ resilience4j:
   retry:
     instances:
       userService:
-        maxRetryAttempts: 3
         waitDuration: 1s
         retryExceptions:
         - java.io.IOException
         - java.net.ConnectException
+        maxRetryAttempts: 3
 kafka:
   topics:
     driver-created: driver.created.dev
@@ -127,6 +112,27 @@ grpc:
     transport-service:
       host: dev-transport.synthi-ai.org
       port: 9092
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    mongodb:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
