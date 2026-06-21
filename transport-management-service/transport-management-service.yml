@@ -1,0 +1,265 @@
+server:
+  port: 9031
+spring:
+  application:
+    name: transport-management-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/transport_management_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: transport-management-service
+        register: true
+        instance-id: transport-management-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: transport-management-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      transport:
+        vehicle:
+          created: transport.vehicle.created
+          updated: transport.vehicle.updated
+          available: transport.vehicle.available
+          assigned: transport.vehicle.assigned
+          maintenance: transport.vehicle.maintenance
+          location: transport.vehicle.location.updated
+        driver:
+          created: transport.driver.created
+          updated: transport.driver.updated
+          available: transport.driver.available
+          assigned: transport.driver.assigned
+          location: transport.driver.location.updated
+        fleet:
+          optimized: transport.fleet.optimized
+          dispatched: transport.fleet.dispatched
+        fuel:
+          consumed: transport.fuel.consumed
+          efficiency: transport.fuel.efficiency
+        maintenance:
+          scheduled: transport.maintenance.scheduled
+          completed: transport.maintenance.completed
+          overdue: transport.maintenance.overdue
+      delivery:
+        assigned: delivery.delivery.assigned
+        route-updated: delivery.route.updated
+      consumer:
+        delivery-events: delivery.*
+        shipment-events: shipment.*
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+fleet:
+  management:
+    auto-dispatch: true
+    load-balancing: true
+    fuel-optimization: true
+    route-optimization: true
+    real-time-tracking: true
+  vehicles:
+    types:
+      refrigerated-truck:
+        capacity-kg: 2000
+        fuel-efficiency-kmpl: 8
+        maintenance-interval-km: 10000
+        insurance-required: true
+      delivery-van:
+        capacity-kg: 500
+        fuel-efficiency-kmpl: 12
+        maintenance-interval-km: 15000
+        insurance-required: true
+      motorcycle:
+        capacity-kg: 50
+        fuel-efficiency-kmpl: 35
+        maintenance-interval-km: 5000
+        insurance-required: true
+  drivers:
+    working-hours:
+      max-daily: 8
+      max-weekly: 40
+      mandatory-break-hours: 1
+    licensing:
+      commercial-required: true
+      food-handling-certification: true
+      background-check: true
+    performance:
+      track-delivery-time: true
+      track-fuel-efficiency: true
+      track-customer-ratings: true
+telematics:
+  enabled: true
+  provider: Geotab
+  device-type: GO9
+  tracking:
+    location-interval-seconds: 30
+    speed-monitoring: true
+    harsh-driving-detection: true
+    idling-detection: true
+    geo-fencing: true
+  fuel:
+    monitoring: true
+    efficiency-calculation: true
+    theft-detection: true
+    consumption-alerts: true
+  maintenance:
+    predictive: true
+    diagnostics: true
+    schedule-optimization: true
+    cost-tracking: true
+integrations:
+  fuel-cards:
+    provider: FleetCor
+    api-key: ${FUEL_CARD_API_KEY}
+    real-time-pricing: true
+  insurance:
+    provider: Commercial Insurance Corp
+    policy-tracking: true
+    claims-management: true
+  navigation:
+    provider: Google Maps
+    api-key: ${GOOGLE_MAPS_API_KEY}
+    traffic-optimization: true
+    eta-calculation: true
+grpc:
+  server:
+    port: 9092
+  client:
+    route-optimization-service:
+      address: static://route-optimization-service:9094
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+compliance:
+  dot-regulations: true
+  hours-of-service: true
+  vehicle-inspections: true
+  driver-logs: true
+  environmental-standards: Euro 6
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      telematicsProvider:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+      fuelCardProvider:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60s
+      routeOptimization:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      telematicsProvider:
+        timeoutDuration: 30s
+      fuelCardProvider:
+        timeoutDuration: 30s
+      routeOptimization:
+        timeoutDuration: 5s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  config: classpath:logback-spring.xml

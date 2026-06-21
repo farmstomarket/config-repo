@@ -1,0 +1,168 @@
+server:
+  port: 9022
+spring:
+  application:
+    name: metrics-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: metrics-service
+        register: true
+        instance-id: metrics-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: metrics-service-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+        max.poll.records: 1000
+    listener:
+      concurrency: 5
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+    scheduling:
+      pool:
+        size: 10
+app:
+  kafka:
+    topics:
+      metrics:
+        application: metrics.application.collected
+        business: metrics.business.collected
+        performance: metrics.performance.collected
+        user: metrics.user.activity
+        system: metrics.system.health
+      alerts:
+        threshold: metrics.alert.threshold
+        anomaly: metrics.alert.anomaly
+      consumer:
+        all-metrics: metrics.*
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+metrics:
+  collection:
+    intervals:
+      real-time: 1m
+      short-term: 5m
+      medium-term: 1h
+      long-term: 1d
+  aggregation:
+    batch-size: 1000
+    processing-threads: 10
+    retention:
+      raw-data-days: 7
+      aggregated-data-days: 90
+      summary-data-days: 365
+  alerts:
+    thresholds:
+      cpu-usage: 80
+      memory-usage: 85
+      disk-usage: 90
+      response-time-ms: 2000
+      error-rate-percent: 5
+    notification:
+      enabled: true
+      channels:
+      - email
+      - slack
+      - webhook
+influxdb:
+  url: ${INFLUXDB_URL}
+  token: ${INFLUXDB_TOKEN}
+  org: ${INFLUXDB_ORG:farmstomarket}
+  bucket: ${INFLUXDB_BUCKET:metrics}
+  retention-days: 90
+prometheus:
+  scrape:
+    interval: 15s
+    timeout: 10s
+    endpoints:
+    - service: agents-service
+      port: 9001
+      path: /actuator/prometheus
+    - service: certification-service
+      port: 9004
+      path: /actuator/prometheus
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      influxdb:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+  timelimiter:
+    instances:
+      influxdb:
+        timeoutDuration: 30s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.mongodb.driver: WARN
+    org.influxdb: INFO
+  config: classpath:logback-spring.xml

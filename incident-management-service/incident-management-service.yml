@@ -1,0 +1,144 @@
+server:
+  port: 9017
+spring:
+  application:
+    name: incident-management-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: incident-management-service
+        register: true
+        instance-id: incident-management-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: incident-management-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      incident:
+        reported: incident.incident.reported
+        acknowledged: incident.incident.acknowledged
+        assigned: incident.incident.assigned
+        resolved: incident.incident.resolved
+        escalated: incident.incident.escalated
+        closed: incident.incident.closed
+      alert:
+        critical: alert.critical.triggered
+        warning: alert.warning.triggered
+      notification:
+        sms: notification.sms.send
+        email: notification.email.send
+        push: notification.push.send
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+incident:
+  severity:
+    critical:
+      response-time-minutes: 15
+      resolution-time-hours: 2
+    high:
+      response-time-minutes: 30
+      resolution-time-hours: 8
+    medium:
+      response-time-minutes: 120
+      resolution-time-hours: 24
+    low:
+      response-time-minutes: 480
+      resolution-time-hours: 72
+  auto-escalation:
+    enabled: true
+    escalation-factor: 1.5
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: ${MINIO_BUCKET_NAME:incidents}
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      notificationService:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      notificationService:
+        timeoutDuration: 10s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.mongodb.driver: WARN
+  config: classpath:logback-spring.xml

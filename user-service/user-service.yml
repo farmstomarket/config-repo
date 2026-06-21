@@ -1,15 +1,8 @@
-# ══════════════════════════════════════════════════════════════════════════════
-# user-service — Farm'sToMarket user management service.
-# Env-specific overrides in user-service-{dev|staging|prod}.yml
-# ══════════════════════════════════════════════════════════════════════════════
-
 server:
   port: 9002
-
 spring:
   application:
     name: user-service
-
   datasource:
     url: jdbc:postgresql://${DB_HOST}:5432/farmstomarket_users
     username: ${DB_USERNAME}
@@ -21,21 +14,17 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
       connection-timeout: 20000
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-
   data:
     redis:
       database: 1
       timeout: 2000ms
-
   kafka:
     consumer:
       group-id: user-service-group
-
 app:
   kafka:
     topics:
@@ -46,11 +35,10 @@ app:
         verified: user.verified
         password-changed: user.password.changed
     dlq:
-      suffix: ".dlq"
-      retry-suffix: ".retry"
+      suffix: .dlq
+      retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
-
 user-service:
   password:
     min-length: 10
@@ -63,15 +51,14 @@ user-service:
     phone-required: false
     verification-token-expiry: 24h
   session:
-    timeout: 30m
-    max-concurrent-sessions: 3
+    timeout: 15m
+    max-concurrent-sessions: 2
   rate-limiting:
     enabled: true
-    login-attempts: 5
-    login-window: 15m
-    registration-attempts: 3
-    registration-window: 1h
-
+    login-attempts: 3
+    login-window: 10m
+    registration-attempts: 2
+    registration-window: 2h
 resilience4j:
   circuitbreaker:
     instances:

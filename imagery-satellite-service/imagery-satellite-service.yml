@@ -1,0 +1,135 @@
+server:
+  port: 9016
+spring:
+  application:
+    name: imagery-satellite-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: imagery-satellite-service
+        register: true
+        instance-id: imagery-satellite-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: imagery-satellite-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      imagery:
+        request: imagery.satellite.request
+        response: imagery.satellite.response
+        processed: imagery.satellite.processed
+        analysis:
+          completed: imagery.analysis.completed
+          failed: imagery.analysis.failed
+      ndvi:
+        calculated: ndvi.index.calculated
+        alert: ndvi.alert.triggered
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+satellite:
+  api:
+    sentinal:
+      base-url: ${SENTINAL_API_URL:https://scihub.copernicus.eu/dhus}
+      username: ${SENTINAL_USERNAME}
+      password: ${SENTINAL_PASSWORD}
+    planet:
+      base-url: ${PLANET_API_URL:https://api.planet.com}
+      api-key: ${PLANET_API_KEY}
+  processing:
+    max-concurrent-requests: 5
+    timeout-seconds: 300
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: ${MINIO_BUCKET_NAME:satellite-images}
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 2000ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      satelliteApi:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+  timelimiter:
+    instances:
+      satelliteApi:
+        timeoutDuration: 300s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.mongodb.driver: WARN
+  config: classpath:logback-spring.xml

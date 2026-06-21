@@ -1,0 +1,185 @@
+server:
+  port: 9027
+spring:
+  application:
+    name: route-optimization-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: route-optimization-service
+        register: true
+        instance-id: route-optimization-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: route-optimization-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      route:
+        optimization:
+          requested: route.optimization.requested
+          completed: route.optimization.completed
+          failed: route.optimization.failed
+        updated: route.route.updated
+        created: route.route.created
+      delivery:
+        scheduled: delivery.delivery.scheduled
+        rescheduled: delivery.delivery.rescheduled
+      traffic:
+        updated: traffic.conditions.updated
+      consumer:
+        delivery-events: delivery.*
+        transport-events: transport.*
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+route:
+  optimization:
+    algorithm: genetic
+    max-stops: 50
+    max-distance-km: 500
+    max-duration-hours: 8
+    vehicle-capacity-kg: 1000
+    genetic:
+      population-size: 100
+      generations: 500
+      mutation-rate: 0.02
+      crossover-rate: 0.8
+      elite-size: 20
+    weights:
+      distance: 0.4
+      time: 0.3
+      fuel-cost: 0.2
+      priority: 0.1
+    constraints:
+      time-windows: true
+      vehicle-capacity: true
+      driver-hours: true
+      traffic-conditions: true
+  cache:
+    route-ttl-hours: 24
+    traffic-ttl-minutes: 15
+    geocoding-ttl-days: 30
+maps:
+  google:
+    api-key: ${GOOGLE_MAPS_API_KEY}
+    directions-enabled: true
+    distance-matrix-enabled: true
+    geocoding-enabled: true
+    traffic-enabled: true
+    requests-per-second: 50
+  osrm:
+    base-url: ${OSRM_BASE_URL}
+    enabled: true
+    fallback-for-google: true
+traffic:
+  real-time:
+    enabled: true
+    update-interval-minutes: 5
+    providers:
+    - google
+    - mapbox
+grpc:
+  server:
+    port: 9094
+  client:
+    transport-management-service:
+      address: static://transport-management-service:9092
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 2000ms, 10000ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      googleMaps:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+      osrmService:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 60
+        waitDurationInOpenState: 15s
+  timelimiter:
+    instances:
+      googleMaps:
+        timeoutDuration: 30s
+      osrmService:
+        timeoutDuration: 15s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.mongodb.driver: WARN
+  config: classpath:logback-spring.xml

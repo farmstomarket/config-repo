@@ -1,0 +1,168 @@
+server:
+  port: 9021
+spring:
+  application:
+    name: media-storage-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: media-storage-service
+        register: true
+        instance-id: media-storage-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    consumer:
+      group-id: media-storage-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      media:
+        uploaded: media.file.uploaded
+        processed: media.file.processed
+        deleted: media.file.deleted
+        thumbnail-generated: media.thumbnail.generated
+        virus-scanned: media.security.scanned
+      image:
+        resized: media.image.resized
+        compressed: media.image.compressed
+        watermarked: media.image.watermarked
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+minio:
+  url: ${MINIO_URL}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  buckets:
+    images: ${MINIO_BUCKET_IMAGES:farm-images}
+    documents: ${MINIO_BUCKET_DOCUMENTS:farm-documents}
+    videos: ${MINIO_BUCKET_VIDEOS:farm-videos}
+    thumbnails: ${MINIO_BUCKET_THUMBNAILS:thumbnails}
+media:
+  processing:
+    image:
+      max-width: 2048
+      max-height: 2048
+      quality: 85
+      formats:
+      - JPEG
+      - PNG
+      - WEBP
+      thumbnail:
+        width: 200
+        height: 200
+    video:
+      max-size-mb: 500
+      formats:
+      - MP4
+      - MOV
+      - AVI
+      compression:
+        enabled: true
+        bitrate: 1000k
+    virus-scan:
+      enabled: true
+      timeout-seconds: 30
+  cdn:
+    base-url: ${CDN_BASE_URL:https://cdn.farmstomarket.io}
+    cache-ttl: 86400
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms, 2000ms
+resilience4j:
+  circuitbreaker:
+    instances:
+      minioStorage:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+      virusScanner:
+        slidingWindowSize: 50
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 30
+        waitDurationInOpenState: 60s
+  timelimiter:
+    instances:
+      minioStorage:
+        timeoutDuration: 60s
+      virusScanner:
+        timeoutDuration: 30s
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.mongodb.driver: WARN
+    io.minio: INFO
+  config: classpath:logback-spring.xml
