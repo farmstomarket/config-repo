@@ -1,0 +1,12 @@
+# Dev overrides for auth-service
+
+spring:
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_auth_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+
+auth-service:
+  rate-limiting:
+    login-attempts: 50
+    window: 1m

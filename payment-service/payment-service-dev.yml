@@ -1,0 +1,20 @@
+# Dev overrides for payment-service
+
+spring:
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_payments_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+
+payment:
+  providers:
+    stripe:
+      # Use Stripe test mode keys in dev
+      public-key: ${STRIPE_TEST_PUBLIC_KEY}
+      secret-key: ${STRIPE_TEST_SECRET_KEY}
+      webhook-secret: ${STRIPE_TEST_WEBHOOK_SECRET}
+    paypal:
+      environment: sandbox
+  limits:
+    max-amount: 1000.00
+    daily-limit: 5000.00

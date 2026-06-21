@@ -1,0 +1,12 @@
+# Production overrides for notification-service
+
+spring:
+  data:
+    mongodb:
+      # Full URI with credentials injected at runtime — no inline credentials
+      uri: ${MONGODB_URI}
+
+management:
+  tracing:
+    sampling:
+      probability: 0.1

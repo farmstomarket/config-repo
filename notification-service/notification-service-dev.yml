@@ -1,0 +1,22 @@
+# Dev overrides for notification-service
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://dev-mongo.synthi-ai.org:27017/farmstomarket_notifications_dev?authSource=admin
+      auto-index-creation: true
+
+mail:
+  smtp:
+    host: ${SMTP_HOST:mailhog}
+    port: ${SMTP_PORT:1025}
+    auth: false
+    starttls:
+      enabled: false
+  from-address: dev-noreply@farmstomarket.io
+
+rate-limit:
+  email:
+    per-minute: 1000
+  sms:
+    per-minute: 200

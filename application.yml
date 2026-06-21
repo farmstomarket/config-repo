@@ -1,20 +1,120 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Global baseline — applied to EVERY service on EVERY profile.
+# Override at service level ({app}/{app}.yml) or profile level (application-{env}.yml).
+# ══════════════════════════════════════════════════════════════════════════════
+
 spring:
-  application:
-    name: my-service
+  # ── Kafka ──────────────────────────────────────────────────────────────────
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: "false"
+        acks: all
+        retries: 3
+        batch-size: 16384
+        buffer-memory: 33554432
+        compression.type: lz4
+        delivery.timeout.ms: 120000
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        # Never use "*" — restrict to project packages to prevent deserialization attacks
+        spring.json.trusted.packages: "com.i4u.synthi_ai.*"
+        isolation.level: read_committed
+        max.poll.interval.ms: 300000
+        max.poll.records: 500
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 3000
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+
+  # ── Consul Discovery (host/port are overridden per profile) ───────────────
   cloud:
-    config:
-      label: main
-      server:
-        git:
-          uri: https://github.com/Farm-sToMarket/config-repo.git
-          search-paths: '{application}'
-          username: ${GITHUB_USERNAME}
-          password: ${GITHUB_PASSWORD}
-  datasource:
-    url: jdbc:mysql://localhost:3306/default_db
-    username: default_user
-    password: default_password
-  logging:
-    level:
-      root: INFO
-      com.yourpackage: DEBUG
+    consul:
+      config:
+        enabled: true
+        format: YAML
+        retry:
+          max-attempts: 6
+          max-interval: 2000
+          multiplier: 1.5
+      discovery:
+        health-check-path: /actuator/health
+        health-check-interval: 30s
+        prefer-ip-address: true
+        deregister: true
+
+  # ── JPA/Hibernate defaults ─────────────────────────────────────────────────
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+
+# ── Actuator ─────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms,100ms,200ms,500ms,2000ms
+
+# ── Resilience4j defaults ────────────────────────────────────────────────────
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 10
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        event-consumer-buffer-size: 10
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+
+# ── Structured logging (JSON-friendly pattern) ───────────────────────────────
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z'} %-5level [${spring.application.name:app},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"

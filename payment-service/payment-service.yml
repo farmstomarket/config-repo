@@ -1,0 +1,146 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# payment-service — PCI-aware payment processing service.
+# ══════════════════════════════════════════════════════════════════════════════
+
+server:
+  port: 9024
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/farmstomarket_payments
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+
+  data:
+    redis:
+      timeout: 300000
+
+  kafka:
+    consumer:
+      group-id: payment-service-group
+      properties:
+        # Restrict to project packages — never use "*"
+        spring.json.trusted.packages: "com.i4u.synthi_ai.*"
+
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+
+app:
+  kafka:
+    topics:
+      payment:
+        initiated: payment.payment.initiated
+        authorized: payment.payment.authorized
+        captured: payment.payment.captured
+        completed: payment.payment.completed
+        failed: payment.payment.failed
+        refunded: payment.payment.refunded
+        cancelled: payment.payment.cancelled
+      transaction:
+        recorded: payment.transaction.recorded
+        disputed: payment.transaction.disputed
+        settled: payment.transaction.settled
+      consumer:
+        orders: marketplace.order.*
+        refunds: marketplace.refund.*
+    dlq:
+      suffix: ".dlq"
+      retry-suffix: ".retry"
+      max-retries: 3
+      retry-delay: 5000
+
+payment:
+  providers:
+    stripe:
+      enabled: true
+      public-key: ${STRIPE_PUBLIC_KEY}
+      secret-key: ${STRIPE_SECRET_KEY}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+      api-version: "2024-06-20"
+      connect-timeout: 30s
+      read-timeout: 80s
+    paypal:
+      enabled: true
+      client-id: ${PAYPAL_CLIENT_ID}
+      client-secret: ${PAYPAL_CLIENT_SECRET}
+      webhook-id: ${PAYPAL_WEBHOOK_ID}
+      connect-timeout: 30s
+      read-timeout: 80s
+  processing:
+    auto-capture: true
+    capture-delay-minutes: 5
+    refund-timeout-days: 30
+    currency: USD
+  fees:
+    stripe-rate: 0.029
+    paypal-rate: 0.034
+    fixed-fee: 0.30
+  limits:
+    min-amount: 1.00
+    max-amount: 50000.00
+    daily-limit: 100000.00
+
+security:
+  encryption:
+    key: ${PAYMENT_ENCRYPTION_KEY}
+    algorithm: AES/GCM/NoPadding  # GCM (authenticated encryption) — never GCB (typo)
+  pci:
+    compliance-level: 1
+    vault-enabled: true
+  fraud-detection:
+    enabled: true
+    risk-threshold: 0.7
+    velocity-checks: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      stripePayments:
+        base-config: default
+        failure-rate-threshold: 30
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+      paypalPayments:
+        base-config: default
+        failure-rate-threshold: 30
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 100
+  timelimiter:
+    instances:
+      stripePayments:
+        timeout-duration: 80s
+      paypalPayments:
+        timeout-duration: 80s
+  retry:
+    instances:
+      stripePayments:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 2s
+      paypalPayments:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 2s

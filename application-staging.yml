@@ -1,48 +1,48 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# Dev profile overrides — shared across ALL services on the dev environment.
+# Staging profile overrides — production-like config, non-production data.
 # ══════════════════════════════════════════════════════════════════════════════
 
 spring:
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
-      port: 8500
+      host: staging-consul.synthi-ai.org
+      port: 443
       scheme: https
       discovery:
         tags:
-          - environment=dev
+          - environment=staging
 
   data:
     redis:
-      host: dev-redis.synthi-ai.org
-      port: 6379
-      password: ${REDIS_DEV_PASSWORD}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
       timeout: 2000ms
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 4
-          min-idle: 1
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
 
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     listener:
-      concurrency: 1
+      concurrency: 2
 
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: https://staging-oauth2.synthi-ai.com
+          jwk-set-uri: https://staging-oauth2.synthi-ai.com/.well-known/jwks.json
 
 cors:
-  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://staging-app.farmstomarket.io}
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: "*"
   exposed-headers: "*"
@@ -52,20 +52,18 @@ cors:
 management:
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
   tracing:
     sampling:
-      probability: 1.0
+      probability: 0.2
   metrics:
     tags:
-      environment: dev
+      environment: staging
 
 logging:
   level:
     root: INFO
-    com.i4u.synthi_ai: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.kafka: INFO
-    org.springframework.cloud: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.i4u.synthi_ai: INFO
+    org.springframework.security: INFO
+    org.springframework.kafka: WARN
+    org.hibernate.SQL: WARN

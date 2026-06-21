@@ -1,0 +1,157 @@
+server:
+  port: 9018
+
+spring:
+  application:
+    name: logging-service
+
+  data:
+    elasticsearch:
+      rest:
+        uris: ${ELASTICSEARCH_URI}
+        username: ${ELASTICSEARCH_USERNAME:elastic}
+        password: ${ELASTICSEARCH_PASSWORD}
+        connection-timeout: 30s
+        read-timeout: 30s
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-id: logging-service
+        register: true
+        instance-id: logging-service
+        health-check-interval: 10s
+        tags:
+          - version=1.0
+          - environment=production
+          - secure=true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties:
+    consumer:
+      group-id: logging-service-group
+      properties:
+        spring.json.trusted.packages: "com.i4u.synthi_ai.*"
+        max.poll.records: 1000
+    listener:
+      concurrency: 5
+
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+
+app:
+  kafka:
+    topics:
+      logs:
+        application: logs.application.events
+        audit: logs.audit.events
+        security: logs.security.events
+        error: logs.error.events
+        performance: logs.performance.events
+      consumer:
+        all-services: logs.*
+    dlq:
+      suffix: ".dlq"
+      retry-suffix: ".retry"
+      max-retries: 3
+      retry-delay: 5000
+
+# Elasticsearch configuration
+elasticsearch:
+  indices:
+    application-logs: application-logs
+    audit-logs: audit-logs
+    security-logs: security-logs
+    error-logs: error-logs
+    performance-logs: performance-logs
+  settings:
+    number-of-shards: 3
+    number-of-replicas: 1
+    refresh-interval: 5s
+  retention:
+    days: 90
+    delete-older-indices: true
+
+# Log processing configuration
+logging-service:
+  batch:
+    size: 1000
+    timeout-ms: 5000
+  processing:
+    threads: 10
+    buffer-size: 10000
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      elasticsearch:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+  timelimiter:
+    instances:
+      elasticsearch:
+        timeoutDuration: 30s
+
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    org.elasticsearch: INFO
+  config: classpath:logback-spring.xml

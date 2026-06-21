@@ -1,0 +1,175 @@
+server:
+  port: 9001
+
+spring:
+  application:
+    name: agents-service
+
+  cache:
+    type: redis
+    cache-names:
+      - buckets
+  data:
+    redis:
+      timeout: 300000
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/farmstomarket_agents
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        service-name: agents-service
+        service-id: agents-service
+        register: true
+        instance-id: agents-service
+        health-check-interval: 10s
+        tags:
+          - version=1.0
+          - environment=production
+          - secure=true
+
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 50MB
+      enabled: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://oauth2-server.synthi-ai.com
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          audiences:
+            - 976095ed-0368-4774-a383-eeef34901da7
+      client:
+        registration:
+          fusionauth:
+            client-id: ${FUSIONAUTH_CLIENT_ID:976095ed-0368-4774-a383-eeef34901da7}
+            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+              - email
+              - profile
+              - phone
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          fusionauth:
+            issuer-uri: ${FUSIONAUTH_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+            authorization-uri: https://oauth2-server.synthi-ai.com/oauth2/authorize
+            token-uri: https://oauth2-server.synthi-ai.com/oauth2/token
+            user-info-uri: https://oauth2-server.synthi-ai.com/oauth2/userinfo
+            jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+            user-name-attribute: phone
+
+fusionauth:
+  apiKey: ${FUSIONAUTH_API_KEY}
+  applicationId: ${FUSIONAUTH_APP_ID:976095ed-0368-4774-a383-eeef34901da7}
+  baseUrl: https://oauth2-server.synthi-ai.com
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  phone-number: ${TWILIO_PHONE_NUMBER}
+  verification:
+    service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}
+
+bucket4j:
+  enabled: true
+  filters:
+    - cache-name: buckets
+      url: /api/v1/auth.*
+      rate-limits:
+        - bandwidth:
+            capacity: 5
+            time: 1
+            unit: minutes
+          cache-key: "getHost()"
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
+
+logging:
+  level:
+    root: WARN
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    com.i4u.synthiai: INFO
+    org.springframework.security: WARN
+    com.twilio: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  config: classpath:logback-spring.xml

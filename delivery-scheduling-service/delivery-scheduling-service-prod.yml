@@ -1,0 +1,287 @@
+server:
+  port: 9040
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: delivery-scheduling-service
+
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: delivery-scheduling-service
+        instance-id: delivery-scheduling-service
+        health-check-interval: 10s
+        tags:
+          - version=1.0
+          - environment=production
+          - secure=true
+
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/delivery_scheduling_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+          region:
+            factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      password: ${REDIS_PASSWORD}
+      lettuce:
+        pool:
+          max-active: 20
+          max-wait: -1ms
+          max-idle: 10
+          min-idle: 5
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties:
+        retry.backoff.ms: 1000
+        batch.size: 16384
+        linger.ms: 5
+        buffer.memory: 33554432
+        enable.idempotence: true
+    consumer:
+      group-id: delivery-scheduling-group
+      properties:
+        spring.json.trusted.packages: "com.i4u.synthi_ai.*"
+        enable.auto.commit: false
+        fetch.min.bytes: 1
+    listener:
+      concurrency: 3
+
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+
+  # Task Execution
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+    scheduling:
+      pool:
+        size: 10
+
+# Business Configuration
+delivery:
+  scheduling:
+    # Time slots configuration
+    time-slots:
+      duration-minutes: 60
+      start-hour: 8
+      end-hour: 18
+      days-ahead: 7
+
+    # Optimization parameters
+    optimization:
+      max-deliveries-per-slot: 10
+      max-distance-km: 50
+      buffer-time-minutes: 15
+      priority-weights:
+        urgent: 1.0
+        standard: 0.7
+        flexible: 0.5
+
+    # Auto-scheduling
+    auto:
+      enabled: true
+      interval-minutes: 30
+      batch-size: 100
+
+# Kafka Topics Configuration
+app:
+  kafka:
+    topics:
+      delivery:
+        scheduled: delivery.delivery.scheduled
+        rescheduled: delivery.delivery.rescheduled
+        cancelled: delivery.delivery.cancelled
+        confirmed: delivery.delivery.confirmed
+        optimized: delivery.delivery.optimized
+        slot:
+          created: delivery.slot.created
+          updated: delivery.slot.updated
+          full: delivery.slot.full
+        route:
+          optimized: delivery.route.optimized
+          updated: delivery.route.updated
+      order:
+        confirmed: marketplace.order.confirmed
+        cancelled: marketplace.order.cancelled
+        updated: marketplace.order.updated
+      consumer:
+        group-id: delivery-scheduling-service
+        transport:
+          vehicle-available: transport.vehicle.available
+          driver-available: transport.driver.available
+        harvest:
+          completed: crop.harvest.completed
+        shipment:
+          ready: shipment.ready.pickup
+  services:
+    route-optimization:
+      grpc:
+        host: ${ROUTE_OPTIMIZATION_GRPC_HOST:route-optimization-service}
+        port: ${ROUTE_OPTIMIZATION_GRPC_PORT:9094}
+    transport-management:
+      grpc:
+        host: ${TRANSPORT_MANAGEMENT_GRPC_HOST:transport-management-service}
+        port: ${TRANSPORT_MANAGEMENT_GRPC_PORT:9092}
+    dlq:
+      suffix: ".dlq"
+      retry-suffix: ".retry"
+      max-retries: 3
+      retry-delay: 5000
+
+# gRPC Configuration
+grpc:
+  server:
+    port: 9041
+  client:
+    transport-management-service:
+      address: static://transport-management-service:9092
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+    route-optimization-service:
+      address: static://route-optimization-service:9094
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+
+# Management & Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,scheduledtasks
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      routeOptimizationService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      transportService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+  retry:
+    instances:
+      routeOptimizationService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+      transportService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+
+# Logging Configuration
+logging:
+  level:
+    root: WARN
+    com.i4u.synthi_ai: INFO
+    org.springframework.cloud: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type: WARN
+    org.springframework.security: WARN
+  config: classpath:logback-spring.xml
