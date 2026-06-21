@@ -124,9 +124,21 @@ app:
       fixed-delay-ms: 5000
   kafka:
     topics:
-      route-optimization-completed: route.optimization.completed      route-optimization-failed: route.optimization.failed      route-assigned: route.assigned      route-status-changed: route.status_changed      routes-reoptimized: route.reoptimized      route-created: route.created      route-updated: route.updated      route-deleted: route.deleted      waypoint-status-changed: route.waypoint.status_changed      route-performance-alert: route.performance.alert    consumer:
+      route-optimization-completed: route.optimization.completed
+      route-optimization-failed: route.optimization.failed
+      route-assigned: route.assigned
+      route-status-changed: route.status_changed
+      routes-reoptimized: route.reoptimized
+      route-created: route.created
+      route-updated: route.updated
+      route-deleted: route.deleted
+      waypoint-status-changed: route.waypoint.status_changed
+      route-performance-alert: route.performance.alert
+    consumer:
       topics:
-        delivery-assigned: delivery.assigned        vehicle-allocated: transport.vehicle.allocated  logging:
+        delivery-assigned: delivery.assigned
+        vehicle-allocated: transport.vehicle.allocated
+  logging:
     enabled: true
     max-file-size: 5MB
     max-history: 3

@@ -62,42 +62,15 @@ grpc:
   topics:
     incident:
       created: incident.created
-
-
-
       updated: incident.updated
-
-
-
       resolved: incident.resolved
-
-
-
       assigned: incident.assigned
-
-
-
       closed: incident.closed
-
-
-
       escalated: incident.escalated
-
-
-
     event:
       vehicle-breakdown: incident.vehicle.breakdown
-
-
-
       delay-reported: incident.delay.reported
-
-
-
       road-closure: incident.road.closure
-
-
-
       weather: incident.weather
 
 
@@ -132,7 +105,16 @@ resilience4j:
         waitDuration: 1s
 kafka:
   topics:
-    incident-created: incident.created    incident-updated: incident.updated    incident-resolved: incident.resolved    incident-assigned: incident.assigned    incident-closed: incident.closed    incident-vehicle-breakdown: incident.vehicle.breakdown    incident-delay-reported: incident.delay.reported    incident-road-closure: incident.road.closure    incident-weather: incident.weathermanagement:
+    incident-created: incident.created
+    incident-updated: incident.updated
+    incident-resolved: incident.resolved
+    incident-assigned: incident.assigned
+    incident-closed: incident.closed
+    incident-vehicle-breakdown: incident.vehicle.breakdown
+    incident-delay-reported: incident.delay.reported
+    incident-road-closure: incident.road.closure
+    incident-weather: incident.weather
+management:
   endpoint:
     health:
       show-details: always

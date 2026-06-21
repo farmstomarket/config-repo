@@ -129,15 +129,32 @@ app:
   kafka:
     topics:
       delivery:
-        scheduled: delivery.delivery.scheduled        rescheduled: delivery.delivery.rescheduled        cancelled: delivery.delivery.cancelled        confirmed: delivery.delivery.confirmed        optimized: delivery.delivery.optimized        slot:
-          created: delivery.slot.created          updated: delivery.slot.updated          full: delivery.slot.full        route:
-          optimized: delivery.route.optimized          updated: delivery.route.updated      order:
-        confirmed: marketplace.order.confirmed        cancelled: marketplace.order.cancelled        updated: marketplace.order.updated      consumer:
+        scheduled: delivery.delivery.scheduled
+        rescheduled: delivery.delivery.rescheduled
+        cancelled: delivery.delivery.cancelled
+        confirmed: delivery.delivery.confirmed
+        optimized: delivery.delivery.optimized
+        slot:
+          created: delivery.slot.created
+          updated: delivery.slot.updated
+          full: delivery.slot.full
+        route:
+          optimized: delivery.route.optimized
+          updated: delivery.route.updated
+      order:
+        confirmed: marketplace.order.confirmed
+        cancelled: marketplace.order.cancelled
+        updated: marketplace.order.updated
+      consumer:
         group-id: delivery-scheduling-service-dev
         transport:
-          vehicle-available: transport.vehicle.available          driver-available: transport.driver.available        harvest:
-          completed: crop.harvest.completed        shipment:
-          ready: shipment.ready.pickup  services:
+          vehicle-available: transport.vehicle.available
+          driver-available: transport.driver.available
+        harvest:
+          completed: crop.harvest.completed
+        shipment:
+          ready: shipment.ready.pickup
+  services:
     route-optimization:
       grpc:
         host: ${CONSUL_HOST:consul.synthi-ai.org}
