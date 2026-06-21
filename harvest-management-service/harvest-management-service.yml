@@ -1,12 +1,10 @@
 server:
   port: 9017
 spring:
-  application:
-    name: harvest-management-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/harvest_management_db_dev
       auto-index-creation: true
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/harvest_management_db_dev
     redis:
       host: dev-redis.synthi-ai.org
       port: 6379
@@ -27,9 +25,6 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  cloud:
-    vault:
-      enabled: false
   security:
     oauth2:
       resourceserver:
@@ -39,9 +34,6 @@ spring:
           audiences:
           - dev-harvest-management-service
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties: null
     consumer:
       group-id: harvest-management-group-dev
       properties:
@@ -49,6 +41,11 @@ spring:
         max.poll.records: 100
     listener:
       concurrency: 2
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties: null
   task:
     execution:
       pool:
@@ -56,6 +53,13 @@ spring:
         max-size: 5
         queue-capacity: 25
         keep-alive: 60s
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/harvest_db?appName=Cluster0}
+  application:
+    name: harvest-management-service
+  cloud:
+    vault:
+      enabled: false
 app:
   kafka:
     topics:
@@ -68,16 +72,64 @@ app:
           updated: crop.harvest.record.updated.dev
       notification:
         events: notification.harvest.events.dev
+      harvest-events: harvest-events
+      notifications: notification-events
       consumer:
         plantation:
+          created: crop.plantation.created
+          updated: crop.plantation.updated
+          status-changed: crop.plantation.status.changed
           events: crop.plantation.status.changed.dev
         weather:
           events: weather.alert.triggered.dev
+        farming-status:
+          events: farming.status.updated
     dlq:
       suffix: .dlq
       retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
+    config:
+      retention-days: 7
+      compression-type: snappy
+      partitions: 3
+      replication-factor: 1
+      harvest-completed-retention-days: 30
+      notification-retention-days: 3
+      notification-partitions: 2
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+  services:
+    crop-management:
+      url: ${CROP_MANAGEMENT_SERVICE_URL:http://crop-management-service:8080}
+    farming-status:
+      url: ${FARMING_STATUS_SERVICE_URL:http://farming-status-service:8080}
+    weather:
+      url: ${WEATHER_SERVICE_URL:http://weather-service:8080}
+  minio:
+    url: ${MINIO_URL:http://20.116.218.195:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket-name: ${MINIO_BUCKET_NAME:harvest-management}
+    presigned-url-expiry: ${MINIO_PRESIGNED_URL_EXPIRY:3600}
+  file-upload:
+    max-file-size: ${FILE_UPLOAD_MAX_SIZE:10485760}
+    max-request-size: ${FILE_UPLOAD_MAX_REQUEST:52428800}
+    allowed-extensions: ${FILE_UPLOAD_ALLOWED_EXT:jpg,jpeg,png,gif,webp,pdf,doc,docx}
+    virus-scan-enabled: ${FILE_UPLOAD_VIRUS_SCAN:true}
+    encryption-enabled: ${FILE_UPLOAD_ENCRYPTION:true}
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 50
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 60
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
 management:
   endpoints:
     web:
@@ -103,18 +155,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 50
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 60
-        waitDurationInOpenState: 10s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 5s
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS

@@ -1,8 +1,6 @@
 server:
   port: 9017
 spring:
-  application:
-    name: search-engine-service
   profiles:
     active: dev
   data:
@@ -11,21 +9,36 @@ spring:
       database: farmstomarket_db_dev
       auto-index-creation: true
     redis:
-      host: dev-redis.synthi-ai.org
-      port: 6379
+      cluster:
+        nodes:
+        - 20.116.218.195:7001
+        - 20.116.218.195:7002
+        - 20.116.218.195:7003
       password: ${REDIS_DEV_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
+      host: dev-redis.synthi-ai.org
+      port: 6379
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
     consumer:
       group-id: search-engine-service-dev
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai
         spring.json.type.mapping: genericEntityEvent:com.i4u.synthi_ai.searchengineservice.applications.events.GenericEntityEvent
-    producer: null
     listener:
       ack-mode: manual_immediate
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-search-engine-service
+  application:
+    name: search-engine-service
   cloud:
     consul:
       host: dev-consul.synthi-ai.org
@@ -41,14 +54,6 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - dev-search-engine-service
 app:
   search:
     meilisearch:

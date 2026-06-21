@@ -1,9 +1,31 @@
 server:
   port: 9023
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
 spring:
-  application:
-    name: notification-service
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/notification_db?appName=Cluster0}
+    auto-index-creation: true
   data:
+    redis:
+      repositories:
+        enabled: false
+      cluster:
+        nodes:
+        - 20.116.218.195:7001
+        - 20.116.218.195:7002
+        - 20.116.218.195:7003
+      password: ${REDIS_PASSWORD:}
+      timeout: 60000
+      connect-timeout: 2000
+      lettuce:
+        pool:
+          max-active: 10
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 2
     mongodb:
       uri: mongodb://dev-mongo.synthi-ai.org:27017/farmstomarket_notifications_dev?authSource=admin
       auto-index-creation: true
@@ -12,6 +34,27 @@ spring:
       group-id: notification-service-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
+    properties:
+      spring.json.trusted.packages: com.i4u.synthi_ai.notificationservice
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    protocol: smtp
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: false
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   task:
     execution:
       pool:
@@ -19,10 +62,158 @@ spring:
         max-size: 30
         queue-capacity: 200
         keep-alive: 60s
+      thread-name-prefix: notification-task-
+    scheduling:
+      pool:
+        size: ${SPRING_TASK_SCHEDULING_POOL_SIZE:3}
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+  application:
+    name: notification-service
+notification:
+  general:
+    default-max-retries: ${NOTIFICATION_GENERAL_DEFAULT_MAX_RETRIES:3}
+    default-retry-delay-ms: ${NOTIFICATION_GENERAL_DEFAULT_RETRY_DELAY_MS:1000}
+    enable-metrics: ${NOTIFICATION_GENERAL_ENABLE_METRICS:true}
+    enable-health-check: ${NOTIFICATION_GENERAL_ENABLE_HEALTH_CHECK:true}
+    default-time-zone: ${NOTIFICATION_GENERAL_DEFAULT_TIME_ZONE:UTC}
+    webhook-timeout-ms: ${NOTIFICATION_GENERAL_WEBHOOK_TIMEOUT_MS:30000}
+    batch-size: ${NOTIFICATION_GENERAL_BATCH_SIZE:100}
+  email:
+    smtp:
+      enabled: ${NOTIFICATION_EMAIL_SMTP_ENABLED:false}
+      host: ${NOTIFICATION_EMAIL_SMTP_HOST:}
+      port: ${NOTIFICATION_EMAIL_SMTP_PORT:587}
+      username: ${NOTIFICATION_EMAIL_SMTP_USERNAME:}
+      password: ${NOTIFICATION_EMAIL_SMTP_PASSWORD:}
+      starttls-enabled: ${NOTIFICATION_EMAIL_SMTP_STARTTLS_ENABLED:true}
+      default-from: ${NOTIFICATION_EMAIL_SMTP_DEFAULT_FROM:no-reply@farmstomarket.io}
+    mailgun:
+      enabled: ${NOTIFICATION_EMAIL_MAILGUN_ENABLED:false}
+      api-key: ${NOTIFICATION_EMAIL_MAILGUN_API_KEY:}
+      domain: ${NOTIFICATION_EMAIL_MAILGUN_DOMAIN:}
+      default-from: ${NOTIFICATION_EMAIL_MAILGUN_DEFAULT_FROM:no-reply@farmstomarket.io}
+      region: ${NOTIFICATION_EMAIL_MAILGUN_REGION:us}
+    mailjet:
+      enabled: ${NOTIFICATION_EMAIL_MAILJET_ENABLED:false}
+      api-key: ${NOTIFICATION_EMAIL_MAILJET_API_KEY:}
+      secret-key: ${NOTIFICATION_EMAIL_MAILJET_SECRET_KEY:}
+      default-from: ${NOTIFICATION_EMAIL_MAILJET_DEFAULT_FROM:no-reply@farmstomarket.io}
+    send-grid:
+      enabled: ${NOTIFICATION_EMAIL_SENDGRID_ENABLED:false}
+      api-key: ${NOTIFICATION_EMAIL_SENDGRID_API_KEY:}
+      default-from: ${NOTIFICATION_EMAIL_SENDGRID_DEFAULT_FROM:no-reply@farmstomarket.io}
+    amazon-ses:
+      enabled: ${NOTIFICATION_EMAIL_AMAZON_SES_ENABLED:false}
+      access-key: ${NOTIFICATION_EMAIL_AMAZON_SES_ACCESS_KEY:}
+      secret-key: ${NOTIFICATION_EMAIL_AMAZON_SES_SECRET_KEY:}
+      region: ${NOTIFICATION_EMAIL_AMAZON_SES_REGION:us-east-1}
+      default-from: ${NOTIFICATION_EMAIL_AMAZON_SES_DEFAULT_FROM:no-reply@farmstomarket.io}
+    twilio:
+      enabled: ${NOTIFICATION_EMAIL_TWILIO_ENABLED:false}
+      api-key: ${NOTIFICATION_EMAIL_TWILIO_API_KEY:}
+      default-from: ${NOTIFICATION_EMAIL_TWILIO_DEFAULT_FROM:no-reply@farmstomarket.io}
+  sms:
+    twilio:
+      enabled: ${NOTIFICATION_SMS_TWILIO_ENABLED:false}
+      account-sid: ${NOTIFICATION_SMS_TWILIO_ACCOUNT_SID:}
+      auth-token: ${NOTIFICATION_SMS_TWILIO_AUTH_TOKEN:}
+      phone-number: ${NOTIFICATION_SMS_TWILIO_PHONE_NUMBER:}
+    sinch:
+      enabled: ${NOTIFICATION_SMS_SINCH_ENABLED:false}
+      api-key: ${NOTIFICATION_SMS_SINCH_API_KEY:}
+      secret: ${NOTIFICATION_SMS_SINCH_SECRET:}
+      phone-number: ${NOTIFICATION_SMS_SINCH_PHONE_NUMBER:}
+      service-plan-id: ${NOTIFICATION_SMS_SINCH_SERVICE_PLAN_ID:}
+    amazon-sns:
+      enabled: ${NOTIFICATION_SMS_AMAZON_SNS_ENABLED:false}
+      access-key: ${NOTIFICATION_SMS_AMAZON_SNS_ACCESS_KEY:}
+      secret-key: ${NOTIFICATION_SMS_AMAZON_SNS_SECRET_KEY:}
+      region: ${NOTIFICATION_SMS_AMAZON_SNS_REGION:us-east-1}
+  push:
+    firebase:
+      enabled: ${NOTIFICATION_PUSH_FIREBASE_ENABLED:true}
+      credentials-file: ${NOTIFICATION_PUSH_FIREBASE_CREDENTIALS_FILE:uploads/farm-stomarket-df9e6512872b.json}
+      project-id: ${NOTIFICATION_PUSH_FIREBASE_PROJECT_ID:farm-stomarket}
+    apn:
+      enabled: ${NOTIFICATION_PUSH_APN_ENABLED:false}
+      key-id: ${NOTIFICATION_PUSH_APN_KEY_ID:}
+      team-id: ${NOTIFICATION_PUSH_APN_TEAM_ID:}
+      key-file: ${NOTIFICATION_PUSH_APN_KEY_FILE:}
+      bundle-id: ${NOTIFICATION_PUSH_APN_BUNDLE_ID:}
+      production: ${NOTIFICATION_PUSH_APN_PRODUCTION:false}
+  chat:
+    slack:
+      enabled: ${NOTIFICATION_CHAT_SLACK_ENABLED:false}
+      bot-token: ${NOTIFICATION_CHAT_SLACK_BOT_TOKEN:}
+      signing-secret: ${NOTIFICATION_CHAT_SLACK_SIGNING_SECRET:}
+    discord:
+      enabled: ${NOTIFICATION_CHAT_DISCORD_ENABLED:false}
+      bot-token: ${NOTIFICATION_CHAT_DISCORD_BOT_TOKEN:}
+    microsoft-teams:
+      enabled: ${NOTIFICATION_CHAT_MICROSOFT_TEAMS_ENABLED:false}
+      app-id: ${NOTIFICATION_CHAT_MICROSOFT_TEAMS_APP_ID:}
+      app-password: ${NOTIFICATION_CHAT_MICROSOFT_TEAMS_APP_PASSWORD:}
+      tenant-id: ${NOTIFICATION_CHAT_MICROSOFT_TEAMS_TENANT_ID:}
+    telegram:
+      enabled: ${NOTIFICATION_CHAT_TELEGRAM_ENABLED:false}
+      bot-token: ${NOTIFICATION_CHAT_TELEGRAM_BOT_TOKEN:}
+  social:
+    whats-app:
+      enabled: ${NOTIFICATION_SOCIAL_WHATSAPP_ENABLED:false}
+      twilio:
+        account-sid: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_ACCOUNT_SID:}
+        auth-token: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_AUTH_TOKEN:}
+        phone-number: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_PHONE_NUMBER:}
+      business:
+        access-token: ${NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCESS_TOKEN:}
+        phone-number-id: ${NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_PHONE_NUMBER_ID:}
+        business-account-id: ${NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCOUNT_ID:}
+  voice:
+    twilio:
+      enabled: ${NOTIFICATION_VOICE_TWILIO_ENABLED:false}
+      account-sid: ${NOTIFICATION_VOICE_TWILIO_ACCOUNT_SID:}
+      auth-token: ${NOTIFICATION_VOICE_TWILIO_AUTH_TOKEN:}
+      phone-number: ${NOTIFICATION_VOICE_TWILIO_PHONE_NUMBER:}
+      twiml-url: ${NOTIFICATION_VOICE_TWILIO_TWIML_URL:}
+security:
+  webhook:
+    enabled: ${SECURITY_WEBHOOK_ENABLED:true}
+    validate-signatures: ${SECURITY_WEBHOOK_VALIDATE_SIGNATURES:true}
+    allowed-ips: ${SECURITY_WEBHOOK_ALLOWED_IPS:}
+  api:
+    rate-limit:
+      enabled: ${SECURITY_API_RATE_LIMIT_ENABLED:true}
+      requests-per-minute: ${SECURITY_API_RATE_LIMIT_REQUESTS_PER_MINUTE:100}
+      burst-capacity: ${SECURITY_API_RATE_LIMIT_BURST_CAPACITY:200}
+async:
+  core-pool-size: ${ASYNC_CORE_POOL_SIZE:5}
+  max-pool-size: ${ASYNC_MAX_POOL_SIZE:20}
+  queue-capacity: ${ASYNC_QUEUE_CAPACITY:100}
+  thread-name-prefix: AsyncNotification-
+  await-termination-seconds: ${ASYNC_AWAIT_TERMINATION_SECONDS:60}
+cache:
+  type: ${CACHE_TYPE:redis}
+  redis:
+    time-to-live: ${CACHE_REDIS_TIME_TO_LIVE:3600}
+    cache-null-values: ${CACHE_REDIS_CACHE_NULL_VALUES:false}
+  caffeine:
+    spec: ${CACHE_CAFFEINE_SPEC:maximumSize=1000,expireAfterWrite=1h}
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:dev}
+  release: ${SENTRY_RELEASE:1.0.0}
+  send-default-pii: false
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.2}
 app:
   kafka:
     topics:
       notification:
+        general: notification.general
+        priority: notification.priority
+        batch: notification.batch
         email:
           send: notification.email.send
           sent: notification.email.sent
@@ -35,6 +226,7 @@ app:
           send: notification.push.send
           sent: notification.push.sent
           failed: notification.push.failed
+        harvest: notification.harvest.events
         webhook:
           send: notification.webhook.send
           sent: notification.webhook.sent
@@ -44,6 +236,11 @@ app:
         incident-events: incident.incident.*
         delivery-events: delivery.delivery.*
         alert-events: alert.*
+    consumer-topics:
+      plantation-created: crop.plantation.created
+      plantation-status-changed: crop.plantation.status.changed
+      harvest-completed: crop.harvest.completed
+      storage-alert: storage.alert.triggered
     dlq:
       suffix: .dlq
       retry-suffix: .retry

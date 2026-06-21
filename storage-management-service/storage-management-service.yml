@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: storage-management-service
   data:
     mongodb:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/storage_management_dev
@@ -8,9 +6,11 @@ spring:
     redis:
       host: dev-redis.synthi-ai.org
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
       timeout: ${REDIS_TIMEOUT:5000}
       connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
+      repositories:
+        enabled: false
+      password: ${REDIS_DEV_PASSWORD}
       lettuce:
         pool:
           max-active: ${REDIS_POOL_MAX_ACTIVE:8}
@@ -24,14 +24,6 @@ spring:
       key-prefix: 'storage:cache:'
       use-key-prefix: true
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        retries: ${KAFKA_PRODUCER_RETRIES:3}
-        batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
-        buffer-memory: ${KAFKA_PRODUCER_BUFFER_MEMORY:33554432}
-        linger-ms: ${KAFKA_PRODUCER_LINGER_MS:5}
-        compression-type: ${KAFKA_PRODUCER_COMPRESSION:snappy}
     consumer:
       group-id: storage-management-service-dev
       properties:
@@ -41,8 +33,30 @@ spring:
         max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:100}
         session.timeout.ms: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
         heartbeat.interval.ms: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        retries: ${KAFKA_PRODUCER_RETRIES:3}
+        batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
+        buffer-memory: ${KAFKA_PRODUCER_BUFFER_MEMORY:33554432}
+        linger-ms: ${KAFKA_PRODUCER_LINGER_MS:5}
+        compression-type: ${KAFKA_PRODUCER_COMPRESSION:snappy}
     listener:
       concurrency: ${KAFKA_LISTENER_CONCURRENCY:2}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          audiences:
+          - dev-storage-management-service
+          cache-duration: ${JWT_CACHE_DURATION:PT5M}
+          clock-skew: ${JWT_CLOCK_SKEW:PT60S}
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: storage-management-service
   cloud:
     consul:
       host: dev-consul.synthi-ai.org
@@ -64,18 +78,6 @@ spring:
         watch:
           enabled: true
           delay: ${CONSUL_CONFIG_WATCH_DELAY:30000}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - dev-storage-management-service
-          cache-duration: ${JWT_CACHE_DURATION:PT5M}
-          clock-skew: ${JWT_CLOCK_SKEW:PT60S}
-  main:
-    allow-bean-definition-overriding: true
   task:
     execution:
       pool:
@@ -94,6 +96,153 @@ server:
   tomcat:
     max-threads: ${SERVER_MAX_THREADS:200}
     accept-count: ${SERVER_ACCEPT_COUNT:100}
+app:
+  kafka:
+    topic:
+      lot-created: lot.created
+      lot-exited: lot.exited
+      alert-triggered: alert.triggered
+      reservation-accepted: reservation.accepted
+    consumer-topics:
+      harvest-completed: crop.harvest.completed
+    topics:
+      storage:
+        warehouse:
+          capacity:
+            warning: storage.warehouse.capacity.warning.dev
+          status:
+            changed: storage.warehouse.status.changed.dev
+          created: storage.warehouse.created.dev
+          updated: storage.warehouse.updated.dev
+          deleted: storage.warehouse.deleted.dev
+        lot:
+          created: storage.lot.created.dev
+          updated: storage.lot.updated.dev
+          exited: storage.lot.exited.dev
+          expired: storage.lot.expired.dev
+        reservation:
+          created: storage.reservation.created.dev
+          accepted: storage.reservation.accepted.dev
+          rejected: storage.reservation.rejected.dev
+          completed: storage.reservation.completed.dev
+        alert:
+          triggered: storage.alert.triggered.dev
+          resolved: storage.alert.resolved.dev
+      consumer:
+        harvest:
+          planned: crop.harvest.planned.dev
+          started: crop.harvest.started.dev
+          completed: crop.harvest.completed.dev
+          updated: crop.harvest.record.updated.dev
+          cancelled: crop.harvest.cancelled.dev
+        product:
+          created: crop.product.created.dev
+          updated: crop.product.updated.dev
+        plantation:
+          status-changed: crop.plantation.status.changed.dev
+    dlq:
+      suffix: ${KAFKA_DLQ_SUFFIX:.dlq}
+      max-retries: ${KAFKA_DLQ_MAX_RETRIES:3}
+      retry-suffix: ${KAFKA_DLQ_RETRY_SUFFIX:.retry}
+      retry-delay: ${KAFKA_DLQ_RETRY_DELAY:5000}
+  webhook:
+    svix:
+      api-key: ${SVIX_API_KEY:dev-svix-api-key}
+      endpoint: ${SVIX_ENDPOINT:https://dev-webhooks.synthi-ai.org}
+      app-id: ${SVIX_APP_ID:dev-app-storage}
+      timeout: ${SVIX_TIMEOUT:10000}
+    events:
+      enabled: ${WEBHOOK_EVENTS_ENABLED:lot.created,warehouse.capacity.warning,lot.expired,reservation.created,warehouse.status.changed}
+    retry:
+      max-attempts: ${WEBHOOK_RETRY_MAX_ATTEMPTS:3}
+      delay: ${WEBHOOK_RETRY_DELAY:2000}
+  services:
+    notification:
+      url: ${NOTIFICATION_SERVICE_URL:https://dev-notification.synthi-ai.org:8082/api/v1}
+      timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5000}
+      retry-attempts: ${NOTIFICATION_SERVICE_RETRY:3}
+    harvest:
+      url: ${HARVEST_SERVICE_URL:https://dev-harvest.synthi-ai.org:9017/api/v1}
+      timeout: ${HARVEST_SERVICE_TIMEOUT:5000}
+      retry-attempts: ${HARVEST_SERVICE_RETRY:3}
+    crop:
+      url: ${CROP_SERVICE_URL:https://dev-crop.synthi-ai.org:9003/api/v1}
+      timeout: ${CROP_SERVICE_TIMEOUT:3000}
+      retry-attempts: ${CROP_SERVICE_RETRY:2}
+  business:
+    warehouse:
+      capacity:
+        warning-threshold: ${WAREHOUSE_WARNING_THRESHOLD:0.85}
+        critical-threshold: ${WAREHOUSE_CRITICAL_THRESHOLD:0.95}
+        info-threshold: ${WAREHOUSE_INFO_THRESHOLD:0.80}
+    alert:
+      thresholds:
+        capacity:
+          info: ${ALERT_CAPACITY_INFO:80.0}
+          warning: ${ALERT_CAPACITY_WARNING:90.0}
+          critical: ${ALERT_CAPACITY_CRITICAL:95.0}
+        environmental:
+          deviation:
+            warning: ${ALERT_ENV_WARNING:10.0}
+            critical: ${ALERT_ENV_CRITICAL:20.0}
+      escalation:
+        hours-threshold: ${ALERT_ESCALATION_HOURS:24}
+      upcoming-exit:
+        days-threshold: ${UPCOMING_EXIT_DAYS:5}
+        notification-threshold: ${UPCOMING_EXIT_NOTIFICATION_DAYS:2}
+    auto:
+      store:
+        enabled: ${AUTO_STORE_ENABLED:false}
+        default-storage-months: ${DEFAULT_STORAGE_MONTHS:3}
+  security:
+    allowed-origins: ${SECURITY_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io}
+    required-scopes:
+      warehouse:
+        read: ${SCOPE_WAREHOUSE_READ:warehouse.read}
+        write: ${SCOPE_WAREHOUSE_WRITE:warehouse.write}
+        manage: ${SCOPE_WAREHOUSE_MANAGE:warehouse.manage}
+      lot:
+        read: ${SCOPE_LOT_READ:lot.read}
+        write: ${SCOPE_LOT_WRITE:lot.write}
+        manage: ${SCOPE_LOT_MANAGE:lot.manage}
+      reservation:
+        read: ${SCOPE_RESERVATION_READ:reservation.read}
+        write: ${SCOPE_RESERVATION_WRITE:reservation.write}
+        approve: ${SCOPE_RESERVATION_APPROVE:reservation.approve}
+      alert:
+        read: ${SCOPE_ALERT_READ:alert.read}
+        manage: ${SCOPE_ALERT_MANAGE:alert.manage}
+  warehouse:
+    capacity:
+      warning-threshold: ${WAREHOUSE_CAPACITY_WARNING_THRESHOLD:0.85}
+      critical-threshold: ${WAREHOUSE_CAPACITY_CRITICAL_THRESHOLD:0.95}
+      full-threshold: ${WAREHOUSE_CAPACITY_FULL_THRESHOLD:0.98}
+    statuses:
+      allowed: ${WAREHOUSE_ALLOWED_STATUSES:ACTIVE,MAINTENANCE,CLOSED,UNDER_CONSTRUCTION,DECOMMISSIONED}
+      default: ${WAREHOUSE_DEFAULT_STATUS:ACTIVE}
+  lot:
+    default-storage-months: ${LOT_DEFAULT_STORAGE_MONTHS:3}
+    expiration-warning-days: ${LOT_EXPIRATION_WARNING_DAYS:7}
+    priorities:
+      allowed: ${LOT_ALLOWED_PRIORITIES:LOW,MEDIUM,HIGH,URGENT}
+      default: ${LOT_DEFAULT_PRIORITY:MEDIUM}
+  storage:
+    auto-store:
+      enabled: ${AUTO_STORE_ENABLED:false}
+      default-storage-months: ${AUTO_STORE_DEFAULT_MONTHS:3}
+      required-capacity-buffer: ${AUTO_STORE_CAPACITY_BUFFER:0.1}
+  alerts:
+    capacity:
+      check-interval: ${ALERT_CAPACITY_CHECK_INTERVAL:300000}
+      notification-cooldown: ${ALERT_CAPACITY_COOLDOWN:1800000}
+    expiration:
+      check-interval: ${ALERT_EXPIRATION_CHECK_INTERVAL:3600000}
+      advance-warning-days: ${ALERT_EXPIRATION_WARNING_DAYS:7}
+    escalation:
+      timeout-hours: ${ALERT_ESCALATION_TIMEOUT:24}
+  geolocation:
+    default-search-radius-km: ${GEO_DEFAULT_SEARCH_RADIUS:50}
+    max-search-radius-km: ${GEO_MAX_SEARCH_RADIUS:500}
 management:
   endpoints:
     web:
@@ -151,121 +300,6 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
   packages-to-scan: com.i4u.synthi_ai.storagemanagementservice.applications.controllers
-app:
-  warehouse:
-    capacity:
-      warning-threshold: ${WAREHOUSE_CAPACITY_WARNING_THRESHOLD:0.85}
-      critical-threshold: ${WAREHOUSE_CAPACITY_CRITICAL_THRESHOLD:0.95}
-      full-threshold: ${WAREHOUSE_CAPACITY_FULL_THRESHOLD:0.98}
-    statuses:
-      allowed: ${WAREHOUSE_ALLOWED_STATUSES:ACTIVE,MAINTENANCE,CLOSED,UNDER_CONSTRUCTION,DECOMMISSIONED}
-      default: ${WAREHOUSE_DEFAULT_STATUS:ACTIVE}
-  lot:
-    default-storage-months: ${LOT_DEFAULT_STORAGE_MONTHS:3}
-    expiration-warning-days: ${LOT_EXPIRATION_WARNING_DAYS:7}
-    priorities:
-      allowed: ${LOT_ALLOWED_PRIORITIES:LOW,MEDIUM,HIGH,URGENT}
-      default: ${LOT_DEFAULT_PRIORITY:MEDIUM}
-  storage:
-    auto-store:
-      enabled: ${AUTO_STORE_ENABLED:false}
-      default-storage-months: ${AUTO_STORE_DEFAULT_MONTHS:3}
-      required-capacity-buffer: ${AUTO_STORE_CAPACITY_BUFFER:0.1}
-  kafka:
-    topics:
-      storage:
-        lot:
-          created: storage.lot.created.dev
-          updated: storage.lot.updated.dev
-          exited: storage.lot.exited.dev
-          expired: storage.lot.expired.dev
-        warehouse:
-          created: storage.warehouse.created.dev
-          updated: storage.warehouse.updated.dev
-          deleted: storage.warehouse.deleted.dev
-          capacity:
-            warning: storage.warehouse.capacity.warning.dev
-          status:
-            changed: storage.warehouse.status.changed.dev
-        reservation:
-          created: storage.reservation.created.dev
-          accepted: storage.reservation.accepted.dev
-          rejected: storage.reservation.rejected.dev
-          completed: storage.reservation.completed.dev
-        alert:
-          triggered: storage.alert.triggered.dev
-          resolved: storage.alert.resolved.dev
-      consumer:
-        harvest:
-          planned: crop.harvest.planned.dev
-          started: crop.harvest.started.dev
-          completed: crop.harvest.completed.dev
-          updated: crop.harvest.record.updated.dev
-          cancelled: crop.harvest.cancelled.dev
-        product:
-          created: crop.product.created.dev
-          updated: crop.product.updated.dev
-        plantation:
-          status-changed: crop.plantation.status.changed.dev
-    dlq:
-      suffix: ${KAFKA_DLQ_SUFFIX:.dlq}
-      retry-suffix: ${KAFKA_DLQ_RETRY_SUFFIX:.retry}
-      max-retries: ${KAFKA_DLQ_MAX_RETRIES:3}
-      retry-delay: ${KAFKA_DLQ_RETRY_DELAY:5000}
-  webhook:
-    svix:
-      api-key: ${SVIX_API_KEY:dev-svix-api-key}
-      endpoint: ${SVIX_ENDPOINT:https://dev-webhooks.synthi-ai.org}
-      app-id: ${SVIX_APP_ID:dev-app-storage}
-      timeout: ${SVIX_TIMEOUT:10000}
-    events:
-      enabled: ${WEBHOOK_EVENTS_ENABLED:lot.created,warehouse.capacity.warning,lot.expired,reservation.created,warehouse.status.changed}
-    retry:
-      max-attempts: ${WEBHOOK_RETRY_MAX_ATTEMPTS:3}
-      delay: ${WEBHOOK_RETRY_DELAY:2000}
-  services:
-    notification:
-      url: ${NOTIFICATION_SERVICE_URL:https://dev-notification.synthi-ai.org:8082/api/v1}
-      timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5000}
-      retry-attempts: ${NOTIFICATION_SERVICE_RETRY:3}
-    harvest:
-      url: ${HARVEST_SERVICE_URL:https://dev-harvest.synthi-ai.org:9017/api/v1}
-      timeout: ${HARVEST_SERVICE_TIMEOUT:5000}
-      retry-attempts: ${HARVEST_SERVICE_RETRY:3}
-    crop:
-      url: ${CROP_SERVICE_URL:https://dev-crop.synthi-ai.org:9003/api/v1}
-      timeout: ${CROP_SERVICE_TIMEOUT:3000}
-      retry-attempts: ${CROP_SERVICE_RETRY:2}
-  security:
-    allowed-origins: ${SECURITY_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io}
-    required-scopes:
-      warehouse:
-        read: ${SCOPE_WAREHOUSE_READ:warehouse.read}
-        write: ${SCOPE_WAREHOUSE_WRITE:warehouse.write}
-        manage: ${SCOPE_WAREHOUSE_MANAGE:warehouse.manage}
-      lot:
-        read: ${SCOPE_LOT_READ:lot.read}
-        write: ${SCOPE_LOT_WRITE:lot.write}
-        manage: ${SCOPE_LOT_MANAGE:lot.manage}
-      reservation:
-        read: ${SCOPE_RESERVATION_READ:reservation.read}
-        write: ${SCOPE_RESERVATION_WRITE:reservation.write}
-        approve: ${SCOPE_RESERVATION_APPROVE:reservation.approve}
-      alert:
-        read: ${SCOPE_ALERT_READ:alert.read}
-        manage: ${SCOPE_ALERT_MANAGE:alert.manage}
-  alerts:
-    capacity:
-      check-interval: ${ALERT_CAPACITY_CHECK_INTERVAL:300000}
-      notification-cooldown: ${ALERT_CAPACITY_COOLDOWN:1800000}
-    expiration:
-      check-interval: ${ALERT_EXPIRATION_CHECK_INTERVAL:3600000}
-      advance-warning-days: ${ALERT_EXPIRATION_WARNING_DAYS:7}
-    escalation:
-      timeout-hours: ${ALERT_ESCALATION_TIMEOUT:24}
-  geolocation:
-    default-search-radius-km: ${GEO_DEFAULT_SEARCH_RADIUS:50}
-    max-search-radius-km: ${GEO_MAX_SEARCH_RADIUS:500}
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io}
   allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}

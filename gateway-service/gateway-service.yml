@@ -1,6 +1,76 @@
+server:
+  port: 9999
+  netty:
+    connection-timeout: 30s
+    validate-headers: true
 spring:
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000000,expireAfterWrite=600s,expireAfterAccess=300s,recordStats
+    cache-names:
+    - serviceDiscovery
+    - routeDefinitions
+    - loadBalancer
+    - circuitBreaker
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      default-filters:
+      - name: CircuitBreaker
+        args:
+          name: defaultCircuitBreaker
+          fallbackUri: forward:/fallback
+      - name: Retry
+        args:
+          retries: 3
+          statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+          methods: GET
+          backoff:
+            firstBackoff: 100ms
+            maxBackoff: 2000ms
+            factor: 2
+            basedOnPreviousValue: false
+      httpclient:
+        pool:
+          type: elastic
+          max-connections: 10000
+          max-idle-time: 120s
+          max-life-time: 1800s
+          acquire-timeout: 30000
+          eviction-interval: 60s
+        connect-timeout: 10000
+        response-timeout: 60s
+        wiretap: false
+        tcp:
+          no-delay: true
+          keep-alive: true
+          keep-idle: 300
+          keep-interval: 60
+          keep-count: 8
+        ssl:
+          use-insecure-trust-manager: false
+          handshake-timeout: 30s
+          close-notify-timeout: 3s
+      loadbalancer:
+        use404: false
+        cache:
+          enabled: true
+          ttl: 300s
+          capacity: 100000
+          caffeine:
+            spec: maximumSize=100000,expireAfterWrite=300s,recordStats
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allow-credentials: true
+            allowed-origin-patterns: '*'
+            allowed-headers: '*'
+            allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+            max-age: 3600
       routes:
       - id: oauth2-authorization
         uri: lb://oauth2-identity-service
@@ -43,3 +113,30 @@ spring:
           args:
             redis-rate-limiter.replenish-rate: 50
             redis-rate-limiter.burst-capacity: 100
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 500
+        minimumNumberOfCalls: 50
+        permittedNumberOfCallsInHalfOpenState: 30
+        failureRateThreshold: 70
+        waitDurationInOpenState: 30s
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 10s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 30s
+        cancelRunningFuture: true
+  retry:
+    instances:
+      defaultRetry:
+        maxAttempts: 3
+        waitDuration: 100ms
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+        - java.net.ConnectException
+        - java.net.SocketTimeoutException
+        - io.netty.channel.ConnectTimeoutException

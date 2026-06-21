@@ -1,6 +1,28 @@
 server:
   port: 9000
 spring:
+  cache:
+    type: redis
+    cache-names:
+    - buckets
+    - jwksCache
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000ms}
+      lettuce:
+        cluster:
+          refresh:
+            adaptive: false
+        pool:
+          enabled: false
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+      database: 2
   application:
     name: oauth2-identity-service
   datasource:
@@ -22,15 +44,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  data:
-    redis:
-      database: 2
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 10
-          max-idle: 10
-          min-idle: 2
   session:
     store-type: redis
     redis:
@@ -132,6 +145,31 @@ spring:
             token-uri: https://github.com/login/oauth/access_token
             user-info-uri: https://api.github.com/user
             user-name-attribute: id
+fusionauth:
+  baseUrl: ${FUSIONAUTH_BASE_URL:https://oauth2-server.synthi-ai.com}
+  issuerUri: ${FUSIONAUTH_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+  clientId: ${FUSIONAUTH_CLIENT_ID}
+  clientSecret: ${FUSIONAUTH_CLIENT_SECRET}
+  redirectUri: ${FUSIONAUTH_REDIRECT_URI:https://oauth2-server.synthi-ai.com/login/oauth2/code/fusionauth}
+oauth2:
+  identity:
+    rate-limit:
+      capacity: 5
+      refill-tokens: 5
+      refill-period: PT1M
+      cache-ttl: PT1M
+      cache-key-prefix: rate-limits-v1
+  introspection:
+    enabled: true
+    require-client-authentication: true
+  revocation:
+    enabled: true
+    revoke-refresh-tokens: true
+    revoke-descendant-tokens: true
+sentry:
+  dsn: ${SENTRY_DSN:https://your-sentry-dsn@sentry.io/your-project-id}
+  environment: ${SPRING_PROFILES_ACTIVE:development}
+  traces-sample-rate: 1.0
 jwt:
   key-store:
     location: ${JWT_KEYSTORE_LOCATION:file:/app/keys/jwt-keystore.p12}
@@ -145,14 +183,6 @@ jwt:
     validity: 604800
   id-token:
     validity: 3600
-oauth2:
-  introspection:
-    enabled: true
-    require-client-authentication: true
-  revocation:
-    enabled: true
-    revoke-refresh-tokens: true
-    revoke-descendant-tokens: true
 account-security:
   password-policy:
     min-length: 10

@@ -1,12 +1,59 @@
 server:
   port: 9030
+  shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/json,text/html,text/plain
 spring:
-  application:
-    name: marketplace-service
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   cache:
     type: redis
     cache-names:
     - buckets
+  data:
+    mongodb:
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/marketplace_db_dev
+      auto-index-creation: true
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      timeout: 30000
+      connect-timeout: 2000
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+    connection-timeout: ${ELASTICSEARCH_CONNECTION_TIMEOUT:5s}
+    socket-timeout: ${ELASTICSEARCH_SOCKET_TIMEOUT:30s}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-marketplace-service
+  kafka:
+    consumer:
+      group-id: marketplace-service-group-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+        fetch.min.bytes: 1
+        max.poll.records: 100
+        enable.auto.commit: false
+    listener:
+      concurrency: 2
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        retry.backoff.ms: 1000
+  application:
+    name: marketplace-service
   cloud:
     consul:
       host: dev-consul.synthi-ai.org
@@ -29,39 +76,11 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  data:
-    mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/marketplace_db_dev
-      auto-index-creation: true
-    redis:
-      host: dev-redis.synthi-ai.org
-      port: 6379
-      password: ${REDIS_DEV_PASSWORD}
-      timeout: 30000
-      connect-timeout: 2000
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        retry.backoff.ms: 1000
-    consumer:
-      group-id: marketplace-service-group-dev
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-        fetch.min.bytes: 1
-        max.poll.records: 100
-        enable.auto.commit: false
-    listener:
-      concurrency: 2
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - dev-marketplace-service
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  search:
+    engine: ${SEARCH_ENGINE:elasticsearch}
   kafka:
     topics:
       marketplace:
@@ -71,14 +90,31 @@ app:
           status-changed: marketplace.product.status.changed.dev
           viewed: marketplace.product.viewed.dev
           sold: marketplace.product.sold.dev
+          enrichment: marketplace.product.enrichment
         order:
           created: marketplace.order.created.dev
           updated: marketplace.order.updated.dev
+        notification:
+          general: marketplace.notification.general
       consumer:
+        harvest:
+          events: harvest-events
+        plantation:
+          created: crop.plantation.created
+          updated: crop.plantation.updated
+          status-changed: crop.plantation.status-changed
+        farm:
+          events: farm-events
+        farming-status:
+          updated: farming-status-updated
+          crop-health-changed: crop-health-changed
+          growth-stage-updated: growth-stage-updated
+          alert-triggered: farming-alert-triggered
         livestock:
           updated: livestock.entity.updated.dev
         crop:
           updated: crop.entity.updated.dev
+    default-replicas: ${KAFKA_DEFAULT_REPLICAS:3}
     dlq:
       suffix: .dlq
       retry-suffix: .retry

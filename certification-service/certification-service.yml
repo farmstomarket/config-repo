@@ -1,13 +1,69 @@
 server:
   port: 9004
 spring:
-  application:
-    name: certification-service
   datasource:
     url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/certification_db_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+    redis:
+      host: 37.60.239.221
+      port: 6379
+      timeout: 300000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service}
+      client:
+        registration:
+          fusionauth:
+            client-id: ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service-client}
+            client-secret: ${DEV_FUSIONAUTH_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+            - openid
+            - email
+            - profile
+        provider:
+          fusionauth:
+            issuer-uri: https://dev-oauth2.synthi-ai.com
+            authorization-uri: https://dev-oauth2.synthi-ai.com/oauth2/authorize
+            token-uri: https://dev-oauth2.synthi-ai.com/oauth2/token
+            user-info-uri: https://dev-oauth2.synthi-ai.com/oauth2/userinfo
+            jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+  kafka:
+    consumer:
+      group-id: certification-service-dev-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 1
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties: null
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 5
+        queue-capacity: 25
+        keep-alive: 60s
+  application:
+    name: certification-service
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -37,48 +93,18 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service}
-      client:
-        registration:
-          fusionauth:
-            client-id: ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service-client}
-            client-secret: ${DEV_FUSIONAUTH_CLIENT_SECRET}
-            authorization-grant-type: authorization_code
-            scope:
-            - openid
-            - email
-            - profile
-        provider:
-          fusionauth:
-            issuer-uri: https://dev-oauth2.synthi-ai.com
-            authorization-uri: https://dev-oauth2.synthi-ai.com/oauth2/authorize
-            token-uri: https://dev-oauth2.synthi-ai.com/oauth2/token
-            user-info-uri: https://dev-oauth2.synthi-ai.com/oauth2/userinfo
-            jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties: null
-    consumer:
-      group-id: certification-service-dev-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 1
-  task:
-    execution:
-      pool:
-        core-size: 2
-        max-size: 5
-        queue-capacity: 25
-        keep-alive: 60s
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 50
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 60
+        waitDurationInOpenState: 5s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 10s
 management:
   endpoints:
     web:
@@ -101,18 +127,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 50
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 60
-        waitDurationInOpenState: 5s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 10s
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS

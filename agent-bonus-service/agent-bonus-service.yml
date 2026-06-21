@@ -1,0 +1,342 @@
+server:
+  port: ${SERVER_PORT:9024}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_MAX_THREADS:200}
+      min-spare: ${SERVER_TOMCAT_MIN_SPARE_THREADS:10}
+    max-connections: ${SERVER_TOMCAT_MAX_CONNECTIONS:8192}
+    connection-timeout: ${SERVER_TOMCAT_CONNECTION_TIMEOUT:20000}
+    max-http-form-post-size: ${SERVER_TOMCAT_MAX_POST_SIZE:4MB}
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: AgentBonusServiceHikariCP
+      maximum-pool-size: ${DATABASE_MAX_POOL_SIZE:25}
+      minimum-idle: ${DATABASE_MIN_IDLE:5}
+      idle-timeout: ${DATABASE_IDLE_TIMEOUT:300000}
+      max-lifetime: ${DATABASE_MAX_LIFETIME:1200000}
+      connection-timeout: ${DATABASE_CONNECTION_TIMEOUT:20000}
+      leak-detection-threshold: ${DATABASE_LEAK_DETECTION:30000}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: ${JPA_FORMAT_SQL:false}
+        jdbc:
+          batch_size: 30
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        connection:
+          provider_disables_autocommit: true
+        query:
+          plan_cache_max_size: 2048
+    show-sql: ${JPA_SHOW_SQL:false}
+    open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:1}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:25}
+          max-idle: ${REDIS_POOL_MAX_IDLE:15}
+          min-idle: ${REDIS_POOL_MIN_IDLE:3}
+          max-wait: ${REDIS_POOL_MAX_WAIT:5000ms}
+        shutdown-timeout: 100ms
+  kafka:
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:agent-bonus-service}
+      max-poll-interval-ms: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
+      session-timeout-ms: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
+      heartbeat-interval-ms: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          default:
+            connect-timeout: ${FEIGN_CONNECT_TIMEOUT:5000}
+            read-timeout: ${FEIGN_READ_TIMEOUT:10000}
+            logger-level: ${FEIGN_LOG_LEVEL:BASIC}
+          agent-service:
+            connect-timeout: ${FEIGN_AGENT_CONNECT_TIMEOUT:3000}
+            read-timeout: ${FEIGN_AGENT_READ_TIMEOUT:8000}
+            logger-level: ${FEIGN_AGENT_LOG_LEVEL:FULL}
+          agent-verification-service:
+            connect-timeout: ${FEIGN_VERIFICATION_CONNECT_TIMEOUT:3000}
+            read-timeout: ${FEIGN_VERIFICATION_READ_TIMEOUT:8000}
+            logger-level: ${FEIGN_VERIFICATION_LOG_LEVEL:FULL}
+          referral-service:
+            connect-timeout: ${FEIGN_REFERRAL_CONNECT_TIMEOUT:3000}
+            read-timeout: ${FEIGN_REFERRAL_READ_TIMEOUT:8000}
+            logger-level: ${FEIGN_REFERRAL_LOG_LEVEL:FULL}
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:3600000}
+      cache-null-values: false
+      key-prefix: '${spring.application.name}:'
+      use-key-prefix: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://20.116.218.195:9020/.well-known/jwks.json}
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://20.116.218.195:9020}
+services:
+  agent-service:
+    url: ${AGENT_SERVICE_URL:http://agents-service}
+    timeout: ${AGENT_SERVICE_TIMEOUT:10000}
+    retry:
+      max-attempts: ${AGENT_SERVICE_RETRY_MAX:3}
+      delay: ${AGENT_SERVICE_RETRY_DELAY:1000}
+  agent-verification-service:
+    url: ${AGENT_VERIFICATION_SERVICE_URL:http://20.116.218.195:8083}
+    timeout: ${AGENT_VERIFICATION_SERVICE_TIMEOUT:10000}
+    retry:
+      max-attempts: ${AGENT_VERIFICATION_SERVICE_RETRY_MAX:3}
+      delay: ${AGENT_VERIFICATION_SERVICE_RETRY_DELAY:1000}
+  referral-service:
+    url: ${REFERRAL_SERVICE_URL:http://20.116.218.195:9023}
+    timeout: ${REFERRAL_SERVICE_TIMEOUT:10000}
+    retry:
+      max-attempts: ${REFERRAL_SERVICE_RETRY_MAX:3}
+      delay: ${REFERRAL_SERVICE_RETRY_DELAY:1000}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://20.116.218.195:8082}
+    timeout: ${NOTIFICATION_SERVICE_TIMEOUT:15000}
+    retry:
+      max-attempts: ${NOTIFICATION_SERVICE_RETRY_MAX:3}
+      delay: ${NOTIFICATION_SERVICE_RETRY_DELAY:2000}
+drools:
+  auto-reload: ${DROOLS_AUTO_RELOAD:true}
+  rules:
+    path: ${DROOLS_RULES_PATH:classpath*:rules/**/*.drl}
+    reload-interval-ms: ${DROOLS_RELOAD_INTERVAL:300000}
+    scan-interval: ${DROOLS_SCAN_INTERVAL:30000}
+    auto-reload: ${DROOLS_AUTO_RELOAD:true}
+    cache-enabled: ${DROOLS_CACHE_ENABLED:true}
+    cache-ttl: ${DROOLS_CACHE_TTL:1800000}
+  session:
+    type: ${DROOLS_SESSION_TYPE:stateless}
+    pool-size: ${DROOLS_SESSION_POOL_SIZE:10}
+    max-pool-size: ${DROOLS_SESSION_MAX_POOL_SIZE:50}
+    timeout: ${DROOLS_SESSION_TIMEOUT:30000}
+  execution:
+    timeout: ${DROOLS_EXECUTION_TIMEOUT:30000}
+    max-facts: ${DROOLS_MAX_FACTS:1000}
+    max-rules-fired: ${DROOLS_MAX_RULES_FIRED:100}
+  clock:
+    type: ${DROOLS_CLOCK_TYPE:REALTIME}
+  event:
+    processing: ${DROOLS_EVENT_PROCESSING:STREAM}
+app:
+  bonus:
+    calculation:
+      timeout: ${BONUS_CALCULATION_TIMEOUT:30000}
+      max-retries: ${BONUS_CALCULATION_MAX_RETRIES:3}
+      batch-size: ${BONUS_CALCULATION_BATCH_SIZE:50}
+      parallel-processing: ${BONUS_PARALLEL_PROCESSING:true}
+      thread-pool-size: ${BONUS_THREAD_POOL_SIZE:10}
+      max-daily-bonus-per-agent: ${MAX_DAILY_BONUS:10}
+      max-monthly-bonus-per-agent: ${MAX_MONTHLY_BONUS:100}
+      future-tolerance-minutes: ${FUTURE_TOLERANCE_MINUTES:5}
+      cooling-period-hours: ${COOLING_PERIOD_HOURS:24}
+      default-currency: ${DEFAULT_CURRENCY:XAF}
+      max-bonus-amount: ${MAX_BONUS_AMOUNT:10000.00}
+      min-bonus-amount: ${MIN_BONUS_AMOUNT:1.00}
+      calculation-timeout-ms: ${CALCULATION_TIMEOUT:30000}
+    validation:
+      min-amount: ${BONUS_MIN_AMOUNT:1.00}
+      max-amount: ${BONUS_MAX_AMOUNT:10000.00}
+      currency: ${BONUS_CURRENCY:XAF}
+      approval-threshold: ${BONUS_APPROVAL_THRESHOLD:500.00}
+      max-daily-bonuses-per-agent: ${BONUS_MAX_DAILY_PER_AGENT:10}
+      max-monthly-bonuses-per-agent: ${BONUS_MAX_MONTHLY_PER_AGENT:100}
+    expiration:
+      default-days: ${BONUS_DEFAULT_EXPIRATION_DAYS:90}
+      cleanup-cron: ${BONUS_CLEANUP_CRON:0 0 2 * * ?}
+      warning-days: ${BONUS_WARNING_DAYS:7,3,1}
+    payment:
+      batch-size: ${BONUS_PAYMENT_BATCH_SIZE:100}
+      retry-interval: ${BONUS_PAYMENT_RETRY_INTERVAL:300000}
+      max-retry-attempts: ${BONUS_PAYMENT_MAX_RETRIES:3}
+    multipliers:
+      quality: ${BONUS_MULTIPLIER_QUALITY:1.2}
+      fast-conversion: ${BONUS_MULTIPLIER_FAST_CONVERSION:1.15}
+      strategic-hire: ${BONUS_MULTIPLIER_STRATEGIC_HIRE:1.25}
+      new-market: ${BONUS_MULTIPLIER_NEW_MARKET:1.3}
+      annual-evaluation: ${BONUS_MULTIPLIER_ANNUAL_EVALUATION:1.5}
+      kpi-excellence: ${BONUS_MULTIPLIER_KPI_EXCELLENCE:1.2}
+      client-satisfaction: ${BONUS_MULTIPLIER_CLIENT_SATISFACTION:1.15}
+      leadership: ${BONUS_MULTIPLIER_LEADERSHIP:1.1}
+      innovation: ${BONUS_MULTIPLIER_INNOVATION:1.1}
+    thresholds:
+      exceptional-rating: ${BONUS_THRESHOLD_EXCEPTIONAL:9.0}
+      excellent-rating: ${BONUS_THRESHOLD_EXCELLENT:7.5}
+      good-rating: ${BONUS_THRESHOLD_GOOD:6.0}
+      kpi-excellence: ${BONUS_THRESHOLD_KPI:8.0}
+      client-satisfaction: ${BONUS_THRESHOLD_CLIENT:8.5}
+      leadership: ${BONUS_THRESHOLD_LEADERSHIP:7.5}
+      innovation: ${BONUS_THRESHOLD_INNOVATION:7.0}
+    limits:
+      max-performance-bonus: ${BONUS_LIMIT_PERFORMANCE:2000.00}
+      max-referral-bonus: ${BONUS_LIMIT_REFERRAL:1500.00}
+      max-mission-bonus: ${BONUS_LIMIT_MISSION:500.00}
+      default-max-bonus: ${BONUS_LIMIT_DEFAULT:1000.00}
+      exceptional-base-amount: ${BONUS_BASE_EXCEPTIONAL:500.00}
+      excellent-base-amount: ${BONUS_BASE_EXCELLENT:300.00}
+      good-base-amount: ${BONUS_BASE_GOOD:150.00}
+      default-mission-base-amount: ${BONUS_BASE_MISSION:100.00}
+      default-referral-base-amount: ${BONUS_BASE_REFERRAL:200.00}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:20.116.218.195:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:agent-bonus-service}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
+      enable-auto-commit: ${KAFKA_ENABLE_AUTO_COMMIT:false}
+      max-poll-records: ${KAFKA_MAX_POLL_RECORDS:100}
+      session-timeout-ms: ${KAFKA_SESSION_TIMEOUT:30000}
+      heartbeat-interval-ms: ${KAFKA_HEARTBEAT_INTERVAL:3000}
+      max-poll-interval-ms: ${KAFKA_MAX_POLL_INTERVAL:300000}
+      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:3}
+    producer:
+      acks: ${KAFKA_PRODUCER_ACKS:all}
+      retries: ${KAFKA_PRODUCER_RETRIES:3}
+      batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
+      linger-ms: ${KAFKA_PRODUCER_LINGER:5}
+      buffer-memory: ${KAFKA_PRODUCER_BUFFER_MEMORY:33554432}
+      compression-type: ${KAFKA_COMPRESSION_TYPE:gzip}
+    error-handling:
+      retry-attempts: ${KAFKA_RETRY_ATTEMPTS:3}
+      retry-interval-ms: ${KAFKA_RETRY_INTERVAL:1000}
+    trusted-packages: ${KAFKA_TRUSTED_PACKAGES:com.i4u.synthi_ai.agentbonusservice.domains.dtos.events}
+  drools:
+    rules-path: ${DROOLS_RULES_PATH:classpath:rules/}
+    session-pool-size: ${DROOLS_SESSION_POOL_SIZE:10}
+    session-timeout-ms: ${DROOLS_SESSION_TIMEOUT:60000}
+    auto-reload: ${DROOLS_AUTO_RELOAD:true}
+    reload-interval-ms: ${DROOLS_RELOAD_INTERVAL:300000}
+  validation:
+    security:
+      input-sanitization:
+        enabled: ${VALIDATION_SANITIZATION_ENABLED:true}
+        max-string-length: ${VALIDATION_MAX_STRING_LENGTH:1000}
+        allowed-character-sets:
+        - ALPHANUMERIC
+        - SPACES
+        - HYPHENS
+        - UNDERSCORES
+        - DOTS
+        blocked-patterns:
+        - (?i).*script.*
+        - (?i).*javascript.*
+        - (?i).*<.*>.*
+        - (?i).*select.*from.*
+        - (?i).*drop.*table.*
+        - (?i).*union.*select.*
+      correlation-id:
+        pattern: ^[a-fA-F0-9-]{8}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{4}-[a-fA-F0-9-]{12}$
+        required: ${CORRELATION_ID_REQUIRED:false}
+        auto-generate: ${CORRELATION_ID_AUTO_GENERATE:true}
+      rate-limiting:
+        enabled: ${RATE_LIMITING_ENABLED:true}
+        requests-per-minute: ${RATE_LIMIT_PER_MINUTE:100}
+        requests-per-hour: ${RATE_LIMIT_PER_HOUR:1000}
+        burst-capacity: ${RATE_LIMIT_BURST:10}
+        key-prefix: 'rate_limit:'
+  outbox:
+    poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:5000}
+    batch-size: ${OUTBOX_BATCH_SIZE:50}
+  rules:
+    compilation:
+      timeout: ${RULE_COMPILATION_TIMEOUT:60000}
+      validation-enabled: ${RULE_VALIDATION_ENABLED:true}
+      syntax-check-enabled: ${RULE_SYNTAX_CHECK_ENABLED:true}
+    deployment:
+      require-approval: ${RULE_DEPLOYMENT_REQUIRE_APPROVAL:true}
+      test-mode-first: ${RULE_TEST_MODE_FIRST:true}
+      rollback-on-failure: ${RULE_ROLLBACK_ON_FAILURE:true}
+sentry:
+  dsn: ${SENTRY_DSN:}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  environment: ${spring.profiles.active}
+  release: ${project.version:1.0.0}
+  send-default-pii: false
+  attach-stacktrace: true
+  debug: ${SENTRY_DEBUG:false}
+  tags:
+    service: agent-bonus-service
+    team: farm-to-market
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,https://*.synthi-ai.org}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+cache:
+  ttl:
+    default: ${CACHE_TTL_DEFAULT:1800}
+    bonus: ${CACHE_TTL_BONUS:3600}
+    rules: ${CACHE_TTL_RULES:7200}
+    agents: ${CACHE_TTL_AGENTS:1800}
+    statistics: ${CACHE_TTL_STATISTICS:300}
+resilience4j:
+  circuitbreaker:
+    instances:
+      agent-service:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      referral-service:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      notification-service:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 60
+  retry:
+    instances:
+      agent-service:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      referral-service:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      notification-service:
+        maxAttempts: 2
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2

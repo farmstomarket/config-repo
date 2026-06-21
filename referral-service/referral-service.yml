@@ -11,8 +11,6 @@ server:
     connection-timeout: 20000
     max-http-form-post-size: 2MB
 spring:
-  application:
-    name: referral-service
   datasource:
     url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/referral_db_dev
     username: ${DEV_DB_USERNAME}
@@ -29,6 +27,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -41,10 +41,19 @@ spring:
         batch_versioned_data: true
         connection:
           provider_disables_autocommit: true
+        hbm2ddl:
+          create_namespaces: false
+        temp:
+          use_jdbc_metadata_defaults: false
+        schema_update:
+          unique_constraint_strategy: RECREATE_QUIETLY
     show-sql: true
     open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
+      repositories:
+        enabled: false
       host: dev-redis.synthi-ai.org
       port: 6379
       password: ${REDIS_DEV_PASSWORD}
@@ -57,20 +66,18 @@ spring:
           min-idle: 1
           max-wait: 5000ms
         shutdown-timeout: 100ms
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      acks: all
-      retries: 3
-      batch-size: 16384
-      buffer-memory: 33554432
-      compression-type: gzip
-      linger-ms: 5
-      max-in-flight-requests-per-connection: 5
-      properties:
-        enable.idempotence: true
-        request.timeout.ms: 30000
   cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: FULL
+          agents-service:
+            connect-timeout: 3000
+            read-timeout: 8000
+            logger-level: FULL
     consul:
       host: dev-consul.synthi-ai.org
       port: 8500
@@ -88,17 +95,6 @@ spring:
         - environment=development
         - team=farm-to-market
         - service-type=microservice
-    openfeign:
-      client:
-        config:
-          default:
-            connect-timeout: 5000
-            read-timeout: 10000
-            logger-level: FULL
-          agents-service:
-            connect-timeout: 3000
-            read-timeout: 8000
-            logger-level: FULL
   cache:
     type: redis
     redis:
@@ -108,6 +104,12 @@ spring:
       use-key-prefix: true
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          audiences:
+          - dev-referral-service
       client:
         registration:
           referral-service:
@@ -121,12 +123,31 @@ spring:
             authorization-uri: https://dev-oauth2.synthi-ai.com/oauth2/authorize
             user-info-uri: https://dev-oauth2.synthi-ai.com/oauth2/userinfo
             jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - dev-referral-service
+  application:
+    name: referral-service
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      compression-type: gzip
+      linger-ms: 5
+      max-in-flight-requests-per-connection: 5
+      properties:
+        enable.idempotence: true
+        request.timeout.ms: 30000
+kafka:
+  topics:
+    referral-code-created: ${KAFKA_TOPIC_REFERRAL_CODE_CREATED:referral.code.created}
+    referral-code-expired: ${KAFKA_TOPIC_REFERRAL_CODE_EXPIRED:referral.code.expired}
+    referral-created: ${KAFKA_TOPIC_REFERRAL_CREATED:referral.created}
+    referral-converted: ${KAFKA_TOPIC_REFERRAL_CONVERTED:referral.converted}
+    reward-earned: ${KAFKA_TOPIC_REWARD_EARNED:reward.earned}
+    reward-redeemed: ${KAFKA_TOPIC_REWARD_REDEEMED:reward.redeemed}
+    transaction-processed: ${KAFKA_TOPIC_TRANSACTION_PROCESSED:transaction.processed}
+    admin-alerts: ${KAFKA_TOPIC_ADMIN_ALERTS:admin.alerts}
 services:
   agents-service:
     url: https://dev-agents.synthi-ai.org:9001
@@ -165,6 +186,20 @@ business:
     performance-threshold: 5
     loyalty-days-threshold: 90
     milestone-increments: 3
+  fraud:
+    risk-threshold: ${FRAUD_RISK_THRESHOLD:70}
+    max-referrals-per-day: ${FRAUD_MAX_REFERRALS_PER_DAY:10}
+    self-referral-score: ${FRAUD_SELF_REFERRAL_SCORE:100}
+    velocity-score: ${FRAUD_VELOCITY_SCORE:30}
+    same-ip-score: ${FRAUD_SAME_IP_SCORE:40}
+sentry:
+  dsn: ${SENTRY_DSN:}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  environment: ${spring.profiles.active}
+  release: ${project.version:1.0.0}
+  send-default-pii: false
+  attach-stacktrace: true
+  debug: ${SENTRY_DEBUG:false}
 management:
   endpoints:
     web:

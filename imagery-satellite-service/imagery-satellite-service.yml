@@ -1,6 +1,26 @@
 server:
   port: 9012
 spring:
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/imagery_satellite_db?appName=Cluster0}
+    auto-index-creation: true
+  kafka:
+    consumer:
+      group-id: imagery-satellite-group-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    topics:
+      imagery-request:
+        name: ${KAFKA_TOPIC_IMAGERY_REQUEST:imagery.plantation.requested}
+        partitions: ${KAFKA_TOPIC_IMAGERY_REQUEST_PARTITIONS:3}
+        replication-factor: ${KAFKA_TOPIC_IMAGERY_REQUEST_REPLICATION:1}
+      imagery-response:
+        name: ${KAFKA_TOPIC_IMAGERY_RESPONSE:imagery.plantation.processed}
+        partitions: ${KAFKA_TOPIC_IMAGERY_RESPONSE_PARTITIONS:3}
+        replication-factor: ${KAFKA_TOPIC_IMAGERY_RESPONSE_REPLICATION:1}
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties: null
   application:
     name: imagery-satellite-service
   data:
@@ -21,14 +41,6 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties: null
-    consumer:
-      group-id: imagery-satellite-group-dev
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
   security:
     oauth2:
       resourceserver:
@@ -37,21 +49,17 @@ spring:
           jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
           audiences:
           - dev-imagery-satellite-service
+app:
+  kafka:
+    consumer-topics:
+      plantation-created: crop.plantation.created
+      harvest-completed: crop.harvest.completed
+      imagery-requested: imagery.plantation.requested
 minio:
   url: https://dev-minio.synthi-ai.org:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
   secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
   bucket-name: satellite-images-dev
-management:
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
 satellite:
   providers:
     mapbox:
@@ -70,6 +78,16 @@ satellite:
     timeout-seconds: 30
     tile-size: 512
     max-tiles-per-request: 4
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS

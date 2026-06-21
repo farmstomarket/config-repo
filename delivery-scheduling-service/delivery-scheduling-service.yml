@@ -8,23 +8,6 @@ server:
     include-message: always
     include-binding-errors: always
 spring:
-  application:
-    name: delivery-scheduling-service
-  cloud:
-    consul:
-      host: dev-consul.synthi-ai.org
-      port: 8500
-      scheme: https
-      enabled: true
-      discovery:
-        enabled: true
-        register: true
-        service-id: delivery-scheduling-service-dev
-        instance-id: delivery-scheduling-service-dev
-        health-check-interval: 10s
-        tags:
-        - version=1.0-dev
-        - environment=development
   datasource:
     url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/delivery_scheduling_db_dev
     username: ${DEV_DB_USERNAME}
@@ -55,8 +38,11 @@ spring:
             factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
   data:
     redis:
-      host: dev-redis.synthi-ai.org
-      port: 6379
+      cluster:
+        nodes:
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_1:7001}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_2:7002}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_3:7003}
       password: ${REDIS_DEV_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
@@ -66,15 +52,9 @@ spring:
           max-wait: -1ms
           max-idle: 4
           min-idle: 1
+      host: dev-redis.synthi-ai.org
+      port: 6379
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties:
-        retry.backoff.ms: 1000
-        batch.size: 16384
-        linger.ms: 5
-        buffer.memory: 33554432
-        enable.idempotence: true
     consumer:
       group-id: delivery-scheduling-group-dev
       properties:
@@ -84,6 +64,16 @@ spring:
         max.poll.records: 100
     listener:
       concurrency: 2
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        retry.backoff.ms: 1000
+        batch.size: 16384
+        linger.ms: 5
+        buffer.memory: 33554432
+        enable.idempotence: true
   security:
     oauth2:
       resourceserver:
@@ -99,6 +89,23 @@ spring:
     scheduling:
       pool:
         size: 2
+  application:
+    name: delivery-scheduling-service
+  cloud:
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: delivery-scheduling-service-dev
+        instance-id: delivery-scheduling-service-dev
+        health-check-interval: 10s
+        tags:
+        - version=1.0-dev
+        - environment=development
 delivery:
   scheduling:
     time-slots:
@@ -175,28 +182,6 @@ grpc:
       negotiation-type: plaintext
       max-inbound-message-size: 4MB
       max-inbound-metadata-size: 8KB
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics,scheduledtasks
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-      sla:
-        http.server.requests: 50ms, 100ms, 200ms, 500ms
 resilience4j:
   circuitbreaker:
     instances:
@@ -231,6 +216,28 @@ resilience4j:
         retryExceptions:
         - java.io.IOException
         - java.net.ConnectException
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,scheduledtasks
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
 logging:
   level:
     root: DEBUG

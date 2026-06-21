@@ -4,6 +4,48 @@ server:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
 spring:
+  data:
+    mongodb:
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/media_storage_db_dev
+      auto-index-creation: true
+    redis:
+      cluster:
+        nodes:
+        - ${REDIS_NODE_1:20.116.218.195:7001}
+        - ${REDIS_NODE_2:20.116.218.195:7002}
+        - ${REDIS_NODE_3:20.116.218.195:7003}
+      password: ${REDIS_DEV_PASSWORD}
+      timeout: 30000
+      connect-timeout: 2000
+      lettuce:
+        pool:
+          max-active: 5
+          max-wait: -1ms
+          max-idle: 4
+          min-idle: 1
+      host: dev-redis.synthi-ai.org
+      port: 6379
+  kafka:
+    consumer:
+      group-id: media-storage-service-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          audiences:
+          - dev-media-storage-service
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 250MB
+      enabled: true
   application:
     name: media-storage-service
   cloud:
@@ -21,43 +63,6 @@ spring:
         tags:
         - version=1.0-dev
         - environment=development
-  data:
-    mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/media_storage_db_dev
-      auto-index-creation: true
-    redis:
-      host: dev-redis.synthi-ai.org
-      port: 6379
-      password: ${REDIS_DEV_PASSWORD}
-      timeout: 30000
-      connect-timeout: 2000
-      lettuce:
-        pool:
-          max-active: 5
-          max-wait: -1ms
-          max-idle: 4
-          min-idle: 1
-  kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
-    producer:
-      properties: null
-    consumer:
-      group-id: media-storage-service-dev
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - dev-media-storage-service
-  servlet:
-    multipart:
-      max-file-size: 500MB
-      max-request-size: 250MB
-      enabled: true
 minio:
   endpoint: https://dev-minio.synthi-ai.org:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
@@ -127,22 +132,22 @@ media:
       - txt
       - rtf
   storage:
+    base-url: ${MEDIA_BASE_URL:http://localhost:9016}
     quotas:
       default-user-quota-gb: 2
       premium-user-quota-gb: 10
     cleanup:
       temp-files-retention-hours: 12
       deleted-files-retention-days: 7
-management:
-  endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: development
+app:
+  kafka:
+    consumer-topics:
+      imagery-processed: imagery.plantation.processed
+    topics:
+      media-uploaded: media.file.uploaded
+      media-processing: media.file.processing
+      media-accessed: media.file.accessed
+      media-deleted: media.file.deleted
 resilience4j:
   circuitbreaker:
     instances:
@@ -170,6 +175,16 @@ resilience4j:
       mongodb:
         max-attempts: 3
         wait-duration: 500ms
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
 cors:
   allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
