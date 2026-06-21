@@ -12,7 +12,7 @@ server:
     max-http-form-post-size: 2MB
 spring:
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/referral_db_dev
+    url: jdbc:postgresql://20.116.218.195:5432/referral_db_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -54,7 +54,7 @@ spring:
     redis:
       repositories:
         enabled: false
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
       password: ${REDIS_DEV_PASSWORD}
       database: 0
@@ -79,7 +79,7 @@ spring:
             read-timeout: 8000
             logger-level: FULL
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       discovery:
@@ -106,8 +106,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
           audiences:
           - dev-referral-service
       client:
@@ -119,14 +119,14 @@ spring:
             scope: read,write
         provider:
           referral-service:
-            token-uri: https://dev-oauth2.synthi-ai.com/oauth2/token
-            authorization-uri: https://dev-oauth2.synthi-ai.com/oauth2/authorize
-            user-info-uri: https://dev-oauth2.synthi-ai.com/oauth2/userinfo
-            jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+            token-uri: http://20.116.218.195:9020/oauth2/token
+            authorization-uri: http://20.116.218.195:9020/oauth2/authorize
+            user-info-uri: http://20.116.218.195:9020/oauth2/userinfo
+            jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
   application:
     name: referral-service
   kafka:
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       acks: all
       retries: 3
@@ -150,13 +150,13 @@ kafka:
     admin-alerts: ${KAFKA_TOPIC_ADMIN_ALERTS:admin.alerts}
 services:
   agents-service:
-    url: https://dev-agents.synthi-ai.org:9001
+    url: https://20.116.218.195:9001
     timeout: 10000
     retry:
       max-attempts: 3
       delay: 1000
   notification-service:
-    url: https://dev-notification.synthi-ai.org:8082
+    url: https://20.116.218.195:8082
     timeout: 15000
     retry:
       max-attempts: 3

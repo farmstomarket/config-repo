@@ -1,10 +1,10 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/storage_management_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/storage_management_dev
       auto-index-creation: true
     redis:
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
       timeout: ${REDIS_TIMEOUT:5000}
       connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
@@ -33,7 +33,7 @@ spring:
         max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:100}
         session.timeout.ms: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
         heartbeat.interval.ms: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       properties:
         retries: ${KAFKA_PRODUCER_RETRIES:3}
@@ -47,8 +47,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
           audiences:
           - dev-storage-management-service
           cache-duration: ${JWT_CACHE_DURATION:PT5M}
@@ -59,7 +59,7 @@ spring:
     name: storage-management-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       discovery:
@@ -148,7 +148,7 @@ app:
   webhook:
     svix:
       api-key: ${SVIX_API_KEY:dev-svix-api-key}
-      endpoint: ${SVIX_ENDPOINT:https://dev-webhooks.synthi-ai.org}
+      endpoint: ${SVIX_ENDPOINT:https://20.116.218.195}
       app-id: ${SVIX_APP_ID:dev-app-storage}
       timeout: ${SVIX_TIMEOUT:10000}
     events:
@@ -158,15 +158,15 @@ app:
       delay: ${WEBHOOK_RETRY_DELAY:2000}
   services:
     notification:
-      url: ${NOTIFICATION_SERVICE_URL:https://dev-notification.synthi-ai.org:8082/api/v1}
+      url: ${NOTIFICATION_SERVICE_URL:https://20.116.218.195:8082/api/v1}
       timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5000}
       retry-attempts: ${NOTIFICATION_SERVICE_RETRY:3}
     harvest:
-      url: ${HARVEST_SERVICE_URL:https://dev-harvest.synthi-ai.org:9017/api/v1}
+      url: ${HARVEST_SERVICE_URL:https://20.116.218.195:9017/api/v1}
       timeout: ${HARVEST_SERVICE_TIMEOUT:5000}
       retry-attempts: ${HARVEST_SERVICE_RETRY:3}
     crop:
-      url: ${CROP_SERVICE_URL:https://dev-crop.synthi-ai.org:9003/api/v1}
+      url: ${CROP_SERVICE_URL:https://20.116.218.195:9003/api/v1}
       timeout: ${CROP_SERVICE_TIMEOUT:3000}
       retry-attempts: ${CROP_SERVICE_RETRY:2}
   business:

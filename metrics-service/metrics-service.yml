@@ -7,7 +7,7 @@ spring:
     name: metrics-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/metrics_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/metrics_dev
       auto-index-creation: true
   cache:
     cache-names: metrics,dashboards,alerts
@@ -15,7 +15,7 @@ spring:
       spec: maximumSize=500,expireAfterWrite=30m
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -32,8 +32,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-metrics-service
 eureka:
@@ -46,9 +46,9 @@ eureka:
     preferIpAddress: true
 prometheus:
   scrape:
-    endpoint: https://dev-prometheus.synthi-ai.org:9090/api/v1
+    endpoint: https://20.116.218.195:9090/api/v1
   alertmanager:
-    endpoint: https://dev-alertmanager.synthi-ai.org:9093/api/v2
+    endpoint: https://20.116.218.195:9093/api/v2
   retention:
     days: 7
   targets:
@@ -63,7 +63,7 @@ prometheus:
     interval: 30s
     path: /actuator/prometheus
 grafana:
-  endpoint: https://dev-grafana.synthi-ai.org:3000/api
+  endpoint: https://20.116.218.195:3000/api
   apiKey: ${DEV_GRAFANA_API_KEY:dev-grafana-key}
 app:
   metrics:

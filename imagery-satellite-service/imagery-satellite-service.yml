@@ -18,17 +18,17 @@ spring:
         name: ${KAFKA_TOPIC_IMAGERY_RESPONSE:imagery.plantation.processed}
         partitions: ${KAFKA_TOPIC_IMAGERY_RESPONSE_PARTITIONS:3}
         replication-factor: ${KAFKA_TOPIC_IMAGERY_RESPONSE_REPLICATION:1}
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       properties: null
   application:
     name: imagery-satellite-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/imagery_satellite_db_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/imagery_satellite_db_dev
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -45,8 +45,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-imagery-satellite-service
 app:
@@ -56,7 +56,7 @@ app:
       harvest-completed: crop.harvest.completed
       imagery-requested: imagery.plantation.requested
 minio:
-  url: https://dev-minio.synthi-ai.org:9000
+  url: https://20.116.218.195:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
   secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
   bucket-name: satellite-images-dev

@@ -2,7 +2,7 @@ server:
   port: 9001
 spring:
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/agents_db_dev
+    url: jdbc:postgresql://20.116.218.195:5432/agents_db_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -37,7 +37,7 @@ spring:
     - buckets
   data:
     redis:
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
       timeout: 300000
       repositories:
@@ -52,8 +52,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - ${DEV_FUSIONAUTH_CLIENT_ID:dev-agents-service}
       client:
@@ -70,17 +70,17 @@ spring:
             redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
         provider:
           fusionauth:
-            issuer-uri: https://oauth2-server-dev.synthi-ai.com
-            authorization-uri: https://oauth2-server-dev.synthi-ai.com/oauth2/authorize
-            token-uri: https://oauth2-server-dev.synthi-ai.com/oauth2/token
-            user-info-uri: https://oauth2-server-dev.synthi-ai.com/oauth2/userinfo
-            jwk-set-uri: https://oauth2-server-dev.synthi-ai.com/.well-known/jwks.json
+            issuer-uri: https://20.116.218.195:9020
+            authorization-uri: https://20.116.218.195:9020/oauth2/authorize
+            token-uri: https://20.116.218.195:9020/oauth2/token
+            user-info-uri: https://20.116.218.195:9020/oauth2/userinfo
+            jwk-set-uri: https://20.116.218.195:9020/.well-known/jwks.json
             user-name-attribute: phone
   application:
     name: agents-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -97,7 +97,7 @@ spring:
 fusionauth:
   apiKey: ${DEV_FUSIONAUTH_API_KEY}
   applicationId: ${DEV_FUSIONAUTH_APP_ID}
-  baseUrl: https://oauth2-server-dev.synthi-ai.com
+  baseUrl: https://20.116.218.195:9020
 twilio:
   account-sid: ${DEV_TWILIO_ACCOUNT_SID}
   auth-token: ${DEV_TWILIO_AUTH_TOKEN}

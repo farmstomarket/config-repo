@@ -7,7 +7,7 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/farming_status_db_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/farming_status_db_dev
     redis:
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:7001,20.116.218.195:7002,20.116.218.195:7003}
@@ -16,7 +16,7 @@ spring:
       connect-timeout: 2000
       repositories:
         enabled: false
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
   kafka:
     consumer:
@@ -25,14 +25,14 @@ spring:
         spring.json.trusted.packages: com.i4u.synthiai.*
     listener:
       ack-mode: manual
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer: null
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-farming-status-service
   web:
@@ -45,7 +45,7 @@ spring:
     name: farming-status-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true

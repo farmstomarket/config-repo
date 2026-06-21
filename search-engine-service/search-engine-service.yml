@@ -5,7 +5,7 @@ spring:
     active: dev
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/farmstomarket_db_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/farmstomarket_db_dev
       database: farmstomarket_db_dev
       auto-index-creation: true
     redis:
@@ -17,7 +17,7 @@ spring:
       password: ${REDIS_DEV_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
   kafka:
     consumer:
@@ -27,21 +27,21 @@ spring:
         spring.json.type.mapping: genericEntityEvent:com.i4u.synthi_ai.searchengineservice.applications.events.GenericEntityEvent
     listener:
       ack-mode: manual_immediate
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer: null
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-search-engine-service
   application:
     name: search-engine-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -57,11 +57,11 @@ spring:
 app:
   search:
     meilisearch:
-      url: https://dev-meilisearch.synthi-ai.org:7700
+      url: https://20.116.218.195:7700
       apiKey: ${DEV_MEILISEARCH_API_KEY:dev-meilisearch-master-key}
     milvus:
       enabled: true
-      host: dev-milvus.synthi-ai.org
+      host: 20.116.218.195
       port: 19530
       username: ${DEV_MILVUS_USERNAME:dev-user}
       password: ${DEV_MILVUS_PASSWORD:dev-password}

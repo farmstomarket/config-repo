@@ -6,7 +6,7 @@ spring:
   application:
     name: logging-service
   elasticsearch:
-    uris: https://dev-elasticsearch.synthi-ai.org:9200
+    uris: https://20.116.218.195:9200
     username: ${DEV_ELASTICSEARCH_USERNAME:elastic}
     password: ${DEV_ELASTICSEARCH_PASSWORD}
   kafka:
@@ -17,11 +17,11 @@ spring:
     topics:
       logs: agropastoral.logs.dev
       alerts: agropastoral.alerts.dev
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer: null
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -38,8 +38,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-logging-service
 eureka:

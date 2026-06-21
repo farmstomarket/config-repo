@@ -4,7 +4,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_auth_dev
+    url: jdbc:postgresql://20.116.218.195:5432/farmstomarket_auth_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

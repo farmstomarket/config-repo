@@ -26,7 +26,7 @@ spring:
   application:
     name: oauth2-identity-service
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_identity_dev
+    url: jdbc:postgresql://20.116.218.195:5432/farmstomarket_identity_dev
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -53,7 +53,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer: https://dev-oauth2.synthi-ai.com
+        issuer: http://20.116.218.195:9020
         client:
           farmstomarket-web:
             registration:
@@ -177,7 +177,7 @@ jwt:
     alias: farmstomarket-jwt
   access-token:
     validity: 3600
-    issuer: https://dev-oauth2.synthi-ai.com
+    issuer: http://20.116.218.195:9020
     audience: farmstomarket-services
   refresh-token:
     validity: 604800

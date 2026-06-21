@@ -6,7 +6,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/media_storage_db_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/media_storage_db_dev
       auto-index-creation: true
     redis:
       cluster:
@@ -23,22 +23,22 @@ spring:
           max-wait: -1ms
           max-idle: 4
           min-idle: 1
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
   kafka:
     consumer:
       group-id: media-storage-service-dev
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       properties: null
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
-          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
           audiences:
           - dev-media-storage-service
   servlet:
@@ -50,7 +50,7 @@ spring:
     name: media-storage-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -64,7 +64,7 @@ spring:
         - version=1.0-dev
         - environment=development
 minio:
-  endpoint: https://dev-minio.synthi-ai.org:9000
+  endpoint: https://20.116.218.195:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
   secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
   bucket:

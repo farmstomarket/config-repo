@@ -2,7 +2,7 @@ server:
   port: 9002
 spring:
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_users_dev
+    url: jdbc:postgresql://20.116.218.195:5432/farmstomarket_users_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

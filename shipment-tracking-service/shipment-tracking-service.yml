@@ -3,10 +3,10 @@ spring:
     name: shipment-tracking-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/shipment_tracking_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/shipment_tracking_dev
       auto-index-creation: true
     redis:
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
       timeout: 2000
       password: ${REDIS_DEV_PASSWORD}
@@ -15,7 +15,7 @@ spring:
       group-id: shipment-tracking-group-dev
       properties:
         spring.json.trusted.packages: com.i4u.*
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       properties:
         spring.json.type.mapping: shipmentEvent:com.agriconnect.shipmenttracking.kafka.model.ShipmentEvent
@@ -25,7 +25,7 @@ spring:
       time-to-live: 3600000
       cache-null-values: false
   datasource:
-    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/timescaledb_dev
+    url: jdbc:postgresql://20.116.218.195:5432/timescaledb_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -44,7 +44,7 @@ spring:
     show-sql: true
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -61,8 +61,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-oauth2.synthi-ai.com
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: http://20.116.218.195:9020
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
           - dev-shipment-tracking-service
 server:
@@ -168,10 +168,10 @@ grpc:
     port: 9093
   client:
     transport-service:
-      host: dev-transport.synthi-ai.org
+      host: 20.116.218.195
       port: 9092
     delivery-service:
-      host: dev-delivery.synthi-ai.org
+      host: 20.116.218.195
       port: 9095
     transport-management:
       host: ${GRPC_TRANSPORT_MGMT_HOST:localhost}
@@ -186,8 +186,8 @@ grpc:
       host: ${GRPC_NOTIFICATION_HOST:localhost}
       port: ${GRPC_NOTIFICATION_PORT:9004}
 traccar:
-  api-url: https://dev-traccar.synthi-ai.org:8082/api
-  websocket-url: wss://dev-traccar.synthi-ai.org:8082/api/socket
+  api-url: https://20.116.218.195:8082/api
+  websocket-url: wss://20.116.218.195:8082/api/socket
   admin:
     email: dev-admin@agriconnect.com
     password: dev-password

@@ -10,10 +10,10 @@ spring:
       connect-timeout: 2000
       repositories:
         enabled: false
-      host: dev-redis.synthi-ai.org
+      host: 20.116.218.195
       port: 6379
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/crop_management_db_dev
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/crop_management_db_dev
       auto-index-creation: true
   mongodb:
     uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/crop_management_db?appName=Cluster0}
@@ -22,7 +22,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
   kafka:
     consumer:
       group-id: crop-management-dev-group
@@ -32,7 +32,7 @@ spring:
       concurrency: 1
       ack-mode: MANUAL_IMMEDIATE
       missing-topics-fatal: false
-    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    bootstrap-servers: 20.116.218.195:9092
     producer:
       properties: null
   task:
@@ -46,7 +46,7 @@ spring:
     name: crop-management-service
   cloud:
     consul:
-      host: dev-consul.synthi-ai.org
+      host: 20.116.218.195
       port: 8500
       scheme: https
       enabled: true
@@ -102,7 +102,7 @@ resilience4j:
       defaultCircuitBreaker:
         timeoutDuration: 10s
 minio:
-  url: https://dev-minio.synthi-ai.org:9000
+  url: https://20.116.218.195:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
   secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
   bucket-name: crops-dev
