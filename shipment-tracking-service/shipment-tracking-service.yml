@@ -1,0 +1,195 @@
+spring:
+  application:
+    name: shipment-tracking-service
+  data:
+    mongodb:
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/shipment_tracking_dev
+      auto-index-creation: true
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      timeout: 2000
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        spring.json.type.mapping: shipmentEvent:com.agriconnect.shipmenttracking.kafka.model.ShipmentEvent
+    consumer:
+      group-id: shipment-tracking-group-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.*
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/timescaledb_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+    show-sql: true
+  cloud:
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: shipment-tracking-service-dev
+        instance-id: shipment-tracking-service-dev
+        health-check-interval: 10s
+        tags:
+        - version=1.0-dev
+        - environment=development
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-shipment-tracking-service
+server:
+  port: 8084
+  servlet:
+    context-path: /api/v1
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    mongodb:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+resilience4j:
+  circuitbreaker:
+    instances:
+      traccarService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      transportService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      deliveryService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      traccarService:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+      transportService:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+      deliveryService:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+kafka:
+  topics:
+    shipment-created: shipment.created.dev
+    shipment-location-updated: shipment.location_updated.dev
+    shipment-status-updated: shipment.status_updated.dev
+    shipment-delivered: shipment.delivered.dev
+    shipment-delayed: shipment.delayed.dev
+    shipment-incident: shipment.incident.dev
+  consumer:
+    topics:
+      transport-location-updated: transport.vehicle_location_updated.dev
+      transport-status-changed: transport.vehicle_status_changed.dev
+      delivery-assigned: delivery.assigned.dev
+      delivery-completed: delivery.completed.dev
+      incident-reported: incident.reported.dev
+grpc:
+  server:
+    port: 9093
+  client:
+    transport-service:
+      host: dev-transport.synthi-ai.org
+      port: 9092
+    delivery-service:
+      host: dev-delivery.synthi-ai.org
+      port: 9095
+traccar:
+  api-url: https://dev-traccar.synthi-ai.org:8082/api
+  websocket-url: wss://dev-traccar.synthi-ai.org:8082/api/socket
+  admin:
+    email: dev-admin@agriconnect.com
+    password: dev-password
+  device-category: delivery-dev
+  update-interval-seconds: 30
+  connection-timeout: 5000
+  read-timeout: 30000
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: '*'
+  exposed-headers: '*'
+  allow-credentials: true
+  max-age: 3600
+logging:
+  level:
+    root: DEBUG
+    com.agriconnect.shipmenttracking: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint}
+      %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}'

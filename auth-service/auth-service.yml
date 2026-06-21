@@ -1,19 +1,12 @@
-# ══════════════════════════════════════════════════════════════════════════════
-# auth-service — lightweight authentication helper that delegates token
-# validation to oauth2-identity-service and exposes auth utilities.
-# ══════════════════════════════════════════════════════════════════════════════
-
 server:
   port: 9003
-
 spring:
   application:
     name: auth-service
-
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/farmstomarket_auth
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_auth_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -21,21 +14,17 @@ spring:
       idle-timeout: 300000
       max-lifetime: 600000
       connection-timeout: 20000
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
-
   data:
     redis:
       database: 3
       timeout: 2000ms
-
   kafka:
     consumer:
       group-id: auth-service-group
-
 app:
   kafka:
     topics:
@@ -45,19 +34,17 @@ app:
         token-revoked: auth.token.revoked
         failed-attempt: auth.login.failed
     dlq:
-      suffix: ".dlq"
-      retry-suffix: ".retry"
+      suffix: .dlq
+      retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
-
 auth-service:
   token:
     revocation-cache-ttl: 1h
   rate-limiting:
     enabled: true
-    login-attempts: 5
-    window: 15m
-
+    login-attempts: 50
+    window: 1m
 resilience4j:
   circuitbreaker:
     instances:

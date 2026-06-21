@@ -1,0 +1,180 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /route-optimization
+spring:
+  application:
+    name: route-optimization-service
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/route_optimization_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+        format_sql: true
+        show_sql: true
+        enable_lazy_load_no_trans: true
+    database-platform: org.hibernate.spatial.dialect.postgis.PostgisDialect
+  data:
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 4
+          max-idle: 4
+          min-idle: 0
+          max-wait: -1ms
+    mongodb:
+      host: dev-mongo.synthi-ai.org
+      port: 27017
+      username: ${DEV_MONGO_USERNAME}
+      password: ${DEV_MONGO_PASSWORD}
+      database: route_optimization_logs_dev
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    consumer:
+      group-id: route-optimization-service-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.routeoptimizationservice
+    producer: null
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+  cloud:
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: route-optimization-service-dev
+        instance-id: route-optimization-service-dev
+        health-check-interval: 10s
+        tags:
+        - version=1.0-dev
+        - environment=development
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-route-optimization-service
+logging:
+  level:
+    root: DEBUG
+    com.i4u.synthi_ai.routeoptimizationservice: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint}
+      %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}'
+axon:
+  axon-server:
+    servers: dev-axon.synthi-ai.org:8124
+  eventhandling:
+    processors:
+      routeProcessor:
+        mode: tracking
+        source: eventBus
+      auditProcessor:
+        mode: subscribing
+        source: eventBus
+grpc:
+  server:
+    port: 9090
+  client:
+    order-management-service:
+      address: static://dev-order-management.synthi-ai.org:9091
+      negotiation-type: plaintext
+    logistics-service:
+      address: static://dev-logistics.synthi-ai.org:9092
+      negotiation-type: plaintext
+    transport-management-service:
+      address: static://dev-transport-management.synthi-ai.org:9093
+      negotiation-type: plaintext
+app:
+  logging:
+    enabled: true
+    max-file-size: 5MB
+    max-history: 3
+  optimization:
+    graphhopper:
+      data-dir: ./graphhopper-data-dev
+      osm-file: ./map-data/dev-map.osm.pbf
+      profiles: car,bike,foot
+      ch-enabled: true
+      lm-enabled: true
+      graph-date-format: yyyy-MM-dd_HH-mm-ss
+      memory-map: true
+    jsprit:
+      max-iterations: 500
+      thread-pool-size: 2
+      break-threshold: 50
+    cache:
+      route-ttl: 1800
+      optimization-ttl: 900
+      traffic-ttl: 180
+  map:
+    provider: graphhopper
+    google:
+      api-key: dev-google-maps-api-key
+      base-url: https://maps.googleapis.com/maps/api
+    osrm:
+      base-url: https://dev-osrm.synthi-ai.org:5000
+    graphhopper:
+      base-url: https://dev-graphhopper.synthi-ai.org:8989
+  traffic:
+    update-interval: 600000
+    enabled: true
+  business:
+    max-route-duration: 360
+    max-vehicle-capacity: 500
+    default-speed: 40
+    service-time: 10
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: '*'
+  exposed-headers: '*'
+  allow-credentials: true
+  max-age: 3600

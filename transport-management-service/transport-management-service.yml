@@ -1,0 +1,148 @@
+spring:
+  application:
+    name: transport-management-service
+  data:
+    mongodb:
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/transport_management_dev
+      auto-index-creation: true
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      timeout: 2000
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        spring.json.type.mapping: transportEvent:com.agriconnect.transportmanagement.kafka.model.TransportEvent
+    consumer:
+      group-id: transport-management-group-dev
+      properties:
+        spring.json.trusted.packages: com.agriconnect.*
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
+  cloud:
+    config:
+      uri: https://dev-config.synthi-ai.org:8888
+      fail-fast: true
+      retry:
+        initial-interval: 1500
+        multiplier: 1.5
+        max-attempts: 6
+        max-interval: 5000
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: transport-management-service-dev
+        instance-id: transport-management-service-dev
+        health-check-interval: 10s
+        tags:
+        - version=1.0-dev
+        - environment=development
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-transport-management-service
+server:
+  port: 8083
+  servlet:
+    context-path: /api/v1
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    mongodb:
+      enabled: true
+    redis:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+resilience4j:
+  circuitbreaker:
+    instances:
+      driverManagementService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      driverManagementService:
+        maxRetryAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+kafka:
+  topics:
+    vehicle-created: transport.vehicle_created.dev
+    vehicle-updated: transport.vehicle_updated.dev
+    vehicle-status-changed: transport.vehicle_status_changed.dev
+    vehicle-location-updated: transport.vehicle_location_updated.dev
+    vehicle-maintenance-needed: transport.vehicle_maintenance_needed.dev
+    vehicle-assigned: transport.vehicle_assigned.dev
+  consumer:
+    topics:
+      driver-assigned: driver.assigned.dev
+      driver-available: driver.available.dev
+      logistics-vehicle-needed: logistics.vehicle_needed.dev
+      incident-vehicle-breakdown: incident.vehicle_breakdown.dev
+      delivery-completed: logistics.delivery.completed.dev
+  dlq:
+    suffix: .dlq
+    retry-suffix: .retry
+    max-retries: 3
+    retry-delay: 5000
+grpc:
+  server:
+    port: 9092
+  client:
+    driver-management-service:
+      host: dev-driver-management.synthi-ai.org
+      port: 9090
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: '*'
+  exposed-headers: '*'
+  allow-credentials: true
+  max-age: 3600
+logging:
+  level:
+    root: DEBUG
+    com.agriconnect.transportmanagement: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.config: DEBUG
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint}
+      %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}'

@@ -1,0 +1,292 @@
+spring:
+  application:
+    name: storage-management-service
+  data:
+    mongodb:
+      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@dev-mongo.synthi-ai.org:27017/storage_management_dev
+      auto-index-creation: true
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      timeout: ${REDIS_TIMEOUT:5000}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:3600}
+      cache-null-values: false
+      key-prefix: 'storage:cache:'
+      use-key-prefix: true
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      properties:
+        retries: ${KAFKA_PRODUCER_RETRIES:3}
+        batch-size: ${KAFKA_PRODUCER_BATCH_SIZE:16384}
+        buffer-memory: ${KAFKA_PRODUCER_BUFFER_MEMORY:33554432}
+        linger-ms: ${KAFKA_PRODUCER_LINGER_MS:5}
+        compression-type: ${KAFKA_PRODUCER_COMPRESSION:snappy}
+    consumer:
+      group-id: storage-management-service-dev
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.storagemanagementservice.domains.events,com.i4u.synthi_ai.harvestmanagementservice.domains.events,com.i4u.synthi_ai.cropmanagementservice.domains.events
+        spring.json.use.type.headers: false
+        max.poll.interval.ms: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
+        max.poll.records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:100}
+        session.timeout.ms: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
+        heartbeat.interval.ms: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+    listener:
+      concurrency: ${KAFKA_LISTENER_CONCURRENCY:2}
+  cloud:
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      discovery:
+        enabled: true
+        instanceId: storage-management-service-dev
+        healthCheckPath: /api/v1/actuator/health
+        healthCheckInterval: ${CONSUL_HEALTH_CHECK_INTERVAL:15s}
+        tags:
+        - version=1.0-dev
+        - environment=development
+        - team=storage
+      config:
+        prefixes: config
+        defaultContext: application
+        profileSeparator: '::'
+        watch:
+          enabled: true
+          delay: ${CONSUL_CONFIG_WATCH_DELAY:30000}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - dev-storage-management-service
+          cache-duration: ${JWT_CACHE_DURATION:PT5M}
+          clock-skew: ${JWT_CLOCK_SKEW:PT60S}
+  main:
+    allow-bean-definition-overriding: true
+  task:
+    execution:
+      pool:
+        core-size: ${TASK_POOL_CORE_SIZE:2}
+        max-size: ${TASK_POOL_MAX_SIZE:5}
+        queue-capacity: ${TASK_POOL_QUEUE_CAPACITY:25}
+        keep-alive: ${TASK_POOL_KEEP_ALIVE:60s}
+server:
+  port: 8081
+  servlet:
+    context-path: /api/v1
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: ${SERVER_COMPRESSION_MIN_SIZE:1024}
+  tomcat:
+    max-threads: ${SERVER_MAX_THREADS:200}
+    accept-count: ${SERVER_ACCEPT_COUNT:100}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,refresh,configprops
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: ${METRICS_HTTP_SLA:50ms,100ms,200ms,500ms}
+resilience4j:
+  circuitbreaker:
+    instances:
+      harvestService:
+        slidingWindowSize: ${CIRCUIT_BREAKER_SLIDING_WINDOW:50}
+        permittedNumberOfCallsInHalfOpenState: ${CIRCUIT_BREAKER_PERMITTED_CALLS:5}
+        failureRateThreshold: ${CIRCUIT_BREAKER_FAILURE_RATE:60}
+        waitDurationInOpenState: ${CIRCUIT_BREAKER_WAIT_DURATION:10s}
+        minimumNumberOfCalls: ${CIRCUIT_BREAKER_MIN_CALLS:10}
+      cropService:
+        slidingWindowSize: 30
+        permittedNumberOfCallsInHalfOpenState: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+  timelimiter:
+    instances:
+      harvestService:
+        timeoutDuration: ${CIRCUIT_BREAKER_TIMEOUT:5s}
+      cropService:
+        timeoutDuration: 3s
+  retry:
+    instances:
+      harvestService:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS:3}
+        waitDuration: ${RETRY_WAIT_DURATION:2s}
+        retryExceptions:
+        - java.net.ConnectException
+        - java.net.SocketTimeoutException
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+  packages-to-scan: com.i4u.synthi_ai.storagemanagementservice.applications.controllers
+app:
+  warehouse:
+    capacity:
+      warning-threshold: ${WAREHOUSE_CAPACITY_WARNING_THRESHOLD:0.85}
+      critical-threshold: ${WAREHOUSE_CAPACITY_CRITICAL_THRESHOLD:0.95}
+      full-threshold: ${WAREHOUSE_CAPACITY_FULL_THRESHOLD:0.98}
+    statuses:
+      allowed: ${WAREHOUSE_ALLOWED_STATUSES:ACTIVE,MAINTENANCE,CLOSED,UNDER_CONSTRUCTION,DECOMMISSIONED}
+      default: ${WAREHOUSE_DEFAULT_STATUS:ACTIVE}
+  lot:
+    default-storage-months: ${LOT_DEFAULT_STORAGE_MONTHS:3}
+    expiration-warning-days: ${LOT_EXPIRATION_WARNING_DAYS:7}
+    priorities:
+      allowed: ${LOT_ALLOWED_PRIORITIES:LOW,MEDIUM,HIGH,URGENT}
+      default: ${LOT_DEFAULT_PRIORITY:MEDIUM}
+  storage:
+    auto-store:
+      enabled: ${AUTO_STORE_ENABLED:false}
+      default-storage-months: ${AUTO_STORE_DEFAULT_MONTHS:3}
+      required-capacity-buffer: ${AUTO_STORE_CAPACITY_BUFFER:0.1}
+  kafka:
+    topics:
+      storage:
+        lot:
+          created: storage.lot.created.dev
+          updated: storage.lot.updated.dev
+          exited: storage.lot.exited.dev
+          expired: storage.lot.expired.dev
+        warehouse:
+          created: storage.warehouse.created.dev
+          updated: storage.warehouse.updated.dev
+          deleted: storage.warehouse.deleted.dev
+          capacity:
+            warning: storage.warehouse.capacity.warning.dev
+          status:
+            changed: storage.warehouse.status.changed.dev
+        reservation:
+          created: storage.reservation.created.dev
+          accepted: storage.reservation.accepted.dev
+          rejected: storage.reservation.rejected.dev
+          completed: storage.reservation.completed.dev
+        alert:
+          triggered: storage.alert.triggered.dev
+          resolved: storage.alert.resolved.dev
+      consumer:
+        harvest:
+          planned: crop.harvest.planned.dev
+          started: crop.harvest.started.dev
+          completed: crop.harvest.completed.dev
+          updated: crop.harvest.record.updated.dev
+          cancelled: crop.harvest.cancelled.dev
+        product:
+          created: crop.product.created.dev
+          updated: crop.product.updated.dev
+        plantation:
+          status-changed: crop.plantation.status.changed.dev
+    dlq:
+      suffix: ${KAFKA_DLQ_SUFFIX:.dlq}
+      retry-suffix: ${KAFKA_DLQ_RETRY_SUFFIX:.retry}
+      max-retries: ${KAFKA_DLQ_MAX_RETRIES:3}
+      retry-delay: ${KAFKA_DLQ_RETRY_DELAY:5000}
+  webhook:
+    svix:
+      api-key: ${SVIX_API_KEY:dev-svix-api-key}
+      endpoint: ${SVIX_ENDPOINT:https://dev-webhooks.synthi-ai.org}
+      app-id: ${SVIX_APP_ID:dev-app-storage}
+      timeout: ${SVIX_TIMEOUT:10000}
+    events:
+      enabled: ${WEBHOOK_EVENTS_ENABLED:lot.created,warehouse.capacity.warning,lot.expired,reservation.created,warehouse.status.changed}
+    retry:
+      max-attempts: ${WEBHOOK_RETRY_MAX_ATTEMPTS:3}
+      delay: ${WEBHOOK_RETRY_DELAY:2000}
+  services:
+    notification:
+      url: ${NOTIFICATION_SERVICE_URL:https://dev-notification.synthi-ai.org:8082/api/v1}
+      timeout: ${NOTIFICATION_SERVICE_TIMEOUT:5000}
+      retry-attempts: ${NOTIFICATION_SERVICE_RETRY:3}
+    harvest:
+      url: ${HARVEST_SERVICE_URL:https://dev-harvest.synthi-ai.org:9017/api/v1}
+      timeout: ${HARVEST_SERVICE_TIMEOUT:5000}
+      retry-attempts: ${HARVEST_SERVICE_RETRY:3}
+    crop:
+      url: ${CROP_SERVICE_URL:https://dev-crop.synthi-ai.org:9003/api/v1}
+      timeout: ${CROP_SERVICE_TIMEOUT:3000}
+      retry-attempts: ${CROP_SERVICE_RETRY:2}
+  security:
+    allowed-origins: ${SECURITY_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io}
+    required-scopes:
+      warehouse:
+        read: ${SCOPE_WAREHOUSE_READ:warehouse.read}
+        write: ${SCOPE_WAREHOUSE_WRITE:warehouse.write}
+        manage: ${SCOPE_WAREHOUSE_MANAGE:warehouse.manage}
+      lot:
+        read: ${SCOPE_LOT_READ:lot.read}
+        write: ${SCOPE_LOT_WRITE:lot.write}
+        manage: ${SCOPE_LOT_MANAGE:lot.manage}
+      reservation:
+        read: ${SCOPE_RESERVATION_READ:reservation.read}
+        write: ${SCOPE_RESERVATION_WRITE:reservation.write}
+        approve: ${SCOPE_RESERVATION_APPROVE:reservation.approve}
+      alert:
+        read: ${SCOPE_ALERT_READ:alert.read}
+        manage: ${SCOPE_ALERT_MANAGE:alert.manage}
+  alerts:
+    capacity:
+      check-interval: ${ALERT_CAPACITY_CHECK_INTERVAL:300000}
+      notification-cooldown: ${ALERT_CAPACITY_COOLDOWN:1800000}
+    expiration:
+      check-interval: ${ALERT_EXPIRATION_CHECK_INTERVAL:3600000}
+      advance-warning-days: ${ALERT_EXPIRATION_WARNING_DAYS:7}
+    escalation:
+      timeout-hours: ${ALERT_ESCALATION_TIMEOUT:24}
+  geolocation:
+    default-search-radius-km: ${GEO_DEFAULT_SEARCH_RADIUS:50}
+    max-search-radius-km: ${GEO_MAX_SEARCH_RADIUS:500}
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:authorization,content-type,x-requested-with,accept,origin,access-control-request-method,access-control-request-headers}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:x-total-count,x-total-pages}
+  allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+  max-age: ${CORS_MAX_AGE:3600}
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.i4u.synthi_ai.storagemanagementservice: ${LOG_LEVEL_APP:DEBUG}
+    org.springframework.data.mongodb: ${LOG_LEVEL_MONGODB:INFO}
+    org.springframework.kafka: ${LOG_LEVEL_KAFKA:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    org.springframework.cloud.consul: ${LOG_LEVEL_CONSUL:INFO}
+    feign: ${LOG_LEVEL_FEIGN:DEBUG}
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint}
+      %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+  file:
+    name: ${LOG_FILE_NAME:./logs/storage-management-service.log}
+    max-size: ${LOG_FILE_MAX_SIZE:10MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:30}
