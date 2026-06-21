@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: 9083
   servlet:
     context-path: /route-optimization
 spring:
@@ -28,7 +28,7 @@ spring:
     database-platform: org.hibernate.spatial.dialect.postgis.PostgisDialect
   data:
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       password: ${REDIS_DEV_PASSWORD}
       database: 0
@@ -40,7 +40,7 @@ spring:
           min-idle: 0
           max-wait: -1ms
     mongodb:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 27017
       username: ${DEV_MONGO_USERNAME}
       password: ${DEV_MONGO_PASSWORD}
@@ -62,9 +62,9 @@ spring:
     time-zone: UTC
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true

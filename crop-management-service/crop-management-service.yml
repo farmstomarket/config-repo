@@ -10,7 +10,7 @@ spring:
       connect-timeout: 2000
       repositories:
         enabled: false
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
     mongodb:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/crop_management_db_dev
@@ -46,9 +46,9 @@ spring:
     name: crop-management-service
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true

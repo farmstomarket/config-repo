@@ -52,7 +52,7 @@ spring:
           max-wait: -1ms
           max-idle: 4
           min-idle: 1
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
   kafka:
     consumer:
@@ -93,9 +93,9 @@ spring:
     name: delivery-scheduling-service
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
@@ -157,11 +157,11 @@ app:
   services:
     route-optimization:
       grpc:
-        host: 20.116.218.195
+        host: ${CONSUL_HOST:consul.synthi-ai.org}
         port: 9094
     transport-management:
       grpc:
-        host: 20.116.218.195
+        host: ${CONSUL_HOST:consul.synthi-ai.org}
         port: 9092
     dlq:
       suffix: .dlq

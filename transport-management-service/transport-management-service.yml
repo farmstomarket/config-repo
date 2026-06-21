@@ -6,7 +6,7 @@ spring:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/transport_management_dev
       auto-index-creation: true
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
       password: ${REDIS_DEV_PASSWORD}
@@ -34,9 +34,9 @@ spring:
         max-attempts: 6
         max-interval: 5000
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
@@ -56,7 +56,7 @@ spring:
           audiences:
           - dev-transport-management-service
 server:
-  port: 8083
+  port: 8086
   servlet:
     context-path: /api/v1
 eureka:
@@ -93,6 +93,8 @@ kafka:
     vehicle-location-updated: transport.vehicle_location_updated.dev
     vehicle-maintenance-needed: transport.vehicle_maintenance_needed.dev
     vehicle-assigned: transport.vehicle_assigned.dev
+    vehicle-available: transport.vehicle.available.dev
+    vehicle-breakdown: transport.vehicle.breakdown.dev
   consumer:
     topics:
       driver-assigned: driver.assigned.dev
@@ -100,6 +102,10 @@ kafka:
       logistics-vehicle-needed: logistics.vehicle_needed.dev
       incident-vehicle-breakdown: incident.vehicle_breakdown.dev
       delivery-completed: logistics.delivery.completed.dev
+app:
+  outbox:
+    relay:
+      fixed-delay-ms: 5000
   dlq:
     suffix: .dlq
     retry-suffix: .retry
@@ -110,7 +116,7 @@ grpc:
     port: 9092
   client:
     driver-management-service:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 9090
 management:
   endpoints:

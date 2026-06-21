@@ -17,7 +17,7 @@ spring:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/marketplace_db_dev
       auto-index-creation: true
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       password: ${REDIS_DEV_PASSWORD}
       timeout: 30000
@@ -56,9 +56,9 @@ spring:
     name: marketplace-service
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       config:
         enabled: false

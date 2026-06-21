@@ -4,7 +4,7 @@ spring:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/storage_management_dev
       auto-index-creation: true
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: ${REDIS_TIMEOUT:5000}
       connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
@@ -59,9 +59,9 @@ spring:
     name: storage-management-service
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       discovery:
         enabled: true
         instanceId: storage-management-service-dev

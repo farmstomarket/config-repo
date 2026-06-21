@@ -15,9 +15,9 @@ spring:
       spec: maximumSize=500,expireAfterWrite=30m
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true

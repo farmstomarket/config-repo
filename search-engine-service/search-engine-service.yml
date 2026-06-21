@@ -17,7 +17,7 @@ spring:
       password: ${REDIS_DEV_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
   kafka:
     consumer:
@@ -41,9 +41,9 @@ spring:
     name: search-engine-service
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
@@ -61,7 +61,7 @@ app:
       apiKey: ${DEV_MEILISEARCH_API_KEY:dev-meilisearch-master-key}
     milvus:
       enabled: true
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 19530
       username: ${DEV_MILVUS_USERNAME:dev-user}
       password: ${DEV_MILVUS_PASSWORD:dev-password}

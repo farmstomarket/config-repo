@@ -6,7 +6,7 @@ spring:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/driver_management_dev
       auto-index-creation: true
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
       password: ${REDIS_DEV_PASSWORD}
@@ -34,9 +34,9 @@ spring:
         max-attempts: 6
         max-interval: 5000
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
@@ -107,10 +107,10 @@ grpc:
     port: 9090
   client:
     logistics-service:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 9091
     transport-service:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 9092
 management:
   endpoints:

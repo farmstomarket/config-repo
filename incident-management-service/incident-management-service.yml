@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: 8085
 spring:
   application:
     name: incident-management-service
@@ -8,7 +8,7 @@ spring:
       uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/incident_management_dev
       database: incident_management_dev
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000ms
       lettuce:
@@ -28,9 +28,9 @@ spring:
       retries: 3
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
@@ -54,10 +54,10 @@ grpc:
     port: 9083
   client:
     shipment-tracking-service:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 9081
     transport-service:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 9082
   topics:
     incident:

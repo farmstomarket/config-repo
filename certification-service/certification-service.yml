@@ -15,7 +15,7 @@ spring:
         hibernate:
           format_sql: true
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 300000
   security:
@@ -74,15 +74,15 @@ spring:
         format_sql: true
   data:
     redis:
-      host: 20.116.218.195
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       password: ${REDIS_DEV_PASSWORD}
       timeout: 300000
   cloud:
     consul:
-      host: 20.116.218.195
-      port: 8500
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
       enabled: true
       discovery:
         enabled: true
