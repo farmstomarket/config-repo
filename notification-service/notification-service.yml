@@ -30,12 +30,17 @@ spring:
       uri: mongodb://20.116.218.195:27017/farmstomarket_notifications_dev?authSource=admin
       auto-index-creation: true
   kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:20.116.218.195:9092}
     consumer:
       group-id: notification-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
     properties:
       spring.json.trusted.packages: com.i4u.synthi_ai.notificationservice
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
@@ -279,11 +284,6 @@ app:
 
 
 
-      consumer:
-        order-events: marketplace.order.*
-        incident-events: incident.incident.*
-        delivery-events: delivery.delivery.*
-        alert-events: alert.*
     consumer-topics:
       plantation-created: crop.plantation.created
 
@@ -299,7 +299,20 @@ app:
 
       storage-alert: storage.alert.triggered
 
-
+    consumer:
+      logistics:
+        notification-events: notification.events
+        incident-created: incident.created
+        incident-assigned: incident.assigned
+        incident-resolved: incident.resolved
+        incident-closed: incident.closed
+        delivery-scheduled: delivery.delivery.scheduled
+        delivery-rescheduled: delivery.delivery.rescheduled
+        delivery-cancelled: delivery.delivery.cancelled
+        delivery-confirmed: delivery.delivery.confirmed
+        driver-assigned: driver.assigned
+        shipment-delayed: shipment.delayed
+        shipment-delivered: shipment.delivered
 
     dlq:
       suffix: .dlq

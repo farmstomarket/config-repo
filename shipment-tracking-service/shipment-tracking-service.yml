@@ -203,6 +203,9 @@ app:
   outbox:
     relay:
       fixed-delay-ms: 5000
+  tracking:
+    route-deviation-threshold-km: 2.0
+    geofence-radius-km: 0.3
 grpc:
   server:
     port: 9093

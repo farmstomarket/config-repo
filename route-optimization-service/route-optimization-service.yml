@@ -153,8 +153,12 @@ app:
       memory-map: true
     jsprit:
       max-iterations: 500
-      thread-pool-size: 2
+      thread-pool-size: 4
       break-threshold: 50
+    cost:
+      fuel-price-per-liter: 1.65
+      maintenance-per-km: 0.12
+      driver-cost-per-hour: 28.0
     cache:
       route-ttl: 1800
       optimization-ttl: 900
