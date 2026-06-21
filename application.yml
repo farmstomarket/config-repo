@@ -44,9 +44,9 @@ spring:
         deregister: true
         tags:
         - environment=staging
-      host: staging-consul.synthi-ai.org
-      port: 443
-      scheme: https
+      host: ${CONSUL_HOST:consul.synthi-ai.org}
+      port: ${CONSUL_PORT:443}
+      scheme: ${CONSUL_SCHEME:https}
   jpa:
     properties:
       hibernate:
