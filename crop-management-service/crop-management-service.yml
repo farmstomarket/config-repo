@@ -74,8 +74,8 @@ app:
           updated: crop.plantation.updated
           status-changed: crop.plantation.status.changed
       imagery:
-        request: imagery.satellite.request
-        response: imagery.satellite.response
+        request: imagery.plantation.requested
+        response: imagery.plantation.processed
       consumer:
         proximity:
           alerts: proximity.alerts.triggered

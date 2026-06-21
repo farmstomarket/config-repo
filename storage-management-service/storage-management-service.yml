@@ -75,7 +75,7 @@ app:
     topic:
       lot-created: lot.created
       lot-exited: lot.exited
-      alert-triggered: alert.triggered
+      alert-triggered: storage.alert.triggered
       reservation-accepted: reservation.accepted
     consumer-topics:
       harvest-completed: crop.harvest.completed

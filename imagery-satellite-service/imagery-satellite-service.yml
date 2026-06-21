@@ -71,9 +71,9 @@ app:
       imagery-requested: imagery.plantation.requested
     topics:
       imagery:
-        request: imagery.satellite.request
-        response: imagery.satellite.response
-        processed: imagery.satellite.processed
+        request: imagery.plantation.requested
+        response: imagery.plantation.processed
+        processed: imagery.plantation.processed
         analysis:
           completed: imagery.analysis.completed
           failed: imagery.analysis.failed
