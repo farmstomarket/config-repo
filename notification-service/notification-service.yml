@@ -1,0 +1,135 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# notification-service — multi-channel notification dispatcher.
+# ══════════════════════════════════════════════════════════════════════════════
+
+server:
+  port: 9023
+
+spring:
+  application:
+    name: notification-service
+
+  data:
+    mongodb:
+      # URI provided via env var — no credentials in config files
+      uri: ${MONGODB_URI}
+      auto-index-creation: true
+
+  kafka:
+    consumer:
+      group-id: notification-service-group
+      properties:
+        spring.json.trusted.packages: "com.i4u.synthi_ai.*"
+
+  task:
+    execution:
+      pool:
+        core-size: 15
+        max-size: 30
+        queue-capacity: 200
+        keep-alive: 60s
+
+app:
+  kafka:
+    topics:
+      notification:
+        email:
+          send: notification.email.send
+          sent: notification.email.sent
+          failed: notification.email.failed
+        sms:
+          send: notification.sms.send
+          sent: notification.sms.sent
+          failed: notification.sms.failed
+        push:
+          send: notification.push.send
+          sent: notification.push.sent
+          failed: notification.push.failed
+        webhook:
+          send: notification.webhook.send
+          sent: notification.webhook.sent
+          failed: notification.webhook.failed
+      consumer:
+        order-events: marketplace.order.*
+        incident-events: incident.incident.*
+        delivery-events: delivery.delivery.*
+        alert-events: alert.*
+    dlq:
+      suffix: ".dlq"
+      retry-suffix: ".retry"
+      max-retries: 3
+      retry-delay: 5000
+
+mail:
+  smtp:
+    host: ${SMTP_HOST:smtp.sendgrid.net}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    auth: true
+    starttls:
+      enabled: true
+  from-address: ${MAIL_FROM_ADDRESS:noreply@farmstomarket.io}
+  from-name: "Farm's To Market"
+
+sms:
+  provider: twilio
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID}
+    auth-token: ${TWILIO_AUTH_TOKEN}
+    phone-number: ${TWILIO_PHONE_NUMBER}
+    messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID}
+
+push:
+  firebase:
+    project-id: ${FIREBASE_PROJECT_ID}
+    private-key-id: ${FIREBASE_PRIVATE_KEY_ID}
+    private-key: ${FIREBASE_PRIVATE_KEY}
+    client-email: ${FIREBASE_CLIENT_EMAIL}
+    client-id: ${FIREBASE_CLIENT_ID}
+
+webhook:
+  timeout-seconds: 30
+  retry-attempts: 3
+  retry-delay-seconds: 5
+
+templates:
+  base-path: classpath:templates/
+  cache-enabled: true
+  cache-ttl-seconds: 3600
+
+rate-limit:
+  email:
+    per-minute: 100
+    per-hour: 1000
+    per-day: 10000
+  sms:
+    per-minute: 20
+    per-hour: 200
+    per-day: 1000
+  push:
+    per-minute: 500
+    per-hour: 5000
+    per-day: 50000
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      emailService:
+        base-config: default
+        failure-rate-threshold: 50
+      smsService:
+        base-config: default
+        failure-rate-threshold: 50
+      pushService:
+        base-config: default
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+  timelimiter:
+    instances:
+      emailService:
+        timeout-duration: 30s
+      smsService:
+        timeout-duration: 10s
+      pushService:
+        timeout-duration: 10s

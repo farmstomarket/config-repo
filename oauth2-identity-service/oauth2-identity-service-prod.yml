@@ -1,13 +1,13 @@
-# Staging overrides for oauth2-identity-service
+# Production overrides for oauth2-identity-service
 
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:5432/farmstomarket_identity_staging
+    url: jdbc:postgresql://${DB_HOST}:5432/farmstomarket_identity
 
   security:
     oauth2:
       authorizationserver:
-        issuer: https://staging-oauth2.synthi-ai.com
+        issuer: https://auth.farmstomarket.io
       client:
         registration:
           google:
@@ -19,16 +19,16 @@ spring:
 
 jwt:
   access-token:
-    validity: 1800
-    issuer: https://staging-oauth2.synthi-ai.com
+    validity: 1800  # 30 min in prod (stricter than default 1h)
+    issuer: https://auth.farmstomarket.io
 
 account-security:
   password-policy:
-    max-attempts: 5
-    lockout-duration: 15m
+    max-attempts: 3
+    lockout-duration: 30m
   session-management:
     max-concurrent-sessions: 2
-    session-timeout: 20m
+    session-timeout: 15m
 
 rate-limiting:
   oauth2:
@@ -36,7 +36,14 @@ rate-limiting:
     token-requests: 10/minute
   social-login:
     attempts: 3/minute
+  password-reset:
+    attempts: 2/hour
 
 audit:
   storage:
-    retention: P180D
+    retention: P365D
+
+management:
+  tracing:
+    sampling:
+      probability: 0.01

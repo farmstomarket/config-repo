@@ -1,0 +1,36 @@
+# Dev overrides for oauth2-identity-service
+
+spring:
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/farmstomarket_identity_dev
+
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: https://dev-oauth2.synthi-ai.com
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID_DEV}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET_DEV}
+          github:
+            client-id: ${GITHUB_OAUTH2_CLIENT_ID_DEV}
+            client-secret: ${GITHUB_OAUTH2_CLIENT_SECRET_DEV}
+
+jwt:
+  access-token:
+    issuer: https://dev-oauth2.synthi-ai.com
+
+rate-limiting:
+  oauth2:
+    authorization-requests: 50/minute
+    token-requests: 100/minute
+
+account-security:
+  password-policy:
+    max-attempts: 20
+    lockout-duration: 1m
+
+audit:
+  storage:
+    retention: P30D

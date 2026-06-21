@@ -1,0 +1,213 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# oauth2-identity-service — Spring Authorization Server for Farm'sToMarket.
+# Env-specific overrides in oauth2-identity-service-{dev|staging|prod}.yml
+# ══════════════════════════════════════════════════════════════════════════════
+
+server:
+  port: 9000
+
+spring:
+  application:
+    name: oauth2-identity-service
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:5432/farmstomarket_identity
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      database: 2
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+
+  session:
+    store-type: redis
+    redis:
+      flush-mode: on_save
+      namespace: farmstomarket:oauth2:sessions
+    timeout: 30m
+
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: ${OAUTH2_ISSUER}
+        client:
+          farmstomarket-web:
+            registration:
+              client-id: farmstomarket-web-client
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - authorization_code
+                - refresh_token
+                - client_credentials
+              redirect-uris:
+                - ${APP_BASE_URL}/login/oauth2/code/farmstomarket
+                - ${APP_BASE_URL}/auth/callback
+              scopes: [openid, profile, email, read, write]
+            require-authorization-consent: false
+            require-proof-key: true
+            token-settings:
+              access-token-time-to-live: PT1H
+              refresh-token-time-to-live: P7D
+              reuse-refresh-tokens: false
+
+          farmstomarket-mobile:
+            registration:
+              client-id: farmstomarket-mobile-client
+              client-authentication-methods:
+                - none  # PKCE — no client secret for public clients
+              authorization-grant-types:
+                - authorization_code
+                - refresh_token
+              redirect-uris:
+                - com.farmstomarket.app://oauth2/callback
+              scopes: [openid, profile, email, read, write]
+            require-authorization-consent: false
+            require-proof-key: true
+            token-settings:
+              access-token-time-to-live: PT1H
+              refresh-token-time-to-live: P30D
+              reuse-refresh-tokens: false
+
+          farmstomarket-admin:
+            registration:
+              client-id: farmstomarket-admin-client
+              client-authentication-methods:
+                - client_secret_basic
+              authorization-grant-types:
+                - client_credentials
+              scopes: [admin, read, write]
+            token-settings:
+              access-token-time-to-live: PT2H
+
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET}
+            client-name: Google
+            scope: [openid, profile, email]
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          github:
+            client-id: ${GITHUB_OAUTH2_CLIENT_ID}
+            client-secret: ${GITHUB_OAUTH2_CLIENT_SECRET}
+            client-name: GitHub
+            scope: [user:email, read:user]
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: id
+
+# JWT signing keystore — path and password injected at runtime
+jwt:
+  key-store:
+    location: ${JWT_KEYSTORE_LOCATION:file:/app/keys/jwt-keystore.p12}
+    password: ${JWT_KEYSTORE_PASSWORD}
+    alias: farmstomarket-jwt
+  access-token:
+    validity: 3600
+    issuer: ${OAUTH2_ISSUER}
+    audience: farmstomarket-services
+  refresh-token:
+    validity: 604800
+  id-token:
+    validity: 3600
+
+# Token introspection & revocation
+oauth2:
+  introspection:
+    enabled: true
+    require-client-authentication: true
+  revocation:
+    enabled: true
+    revoke-refresh-tokens: true
+    revoke-descendant-tokens: true
+
+# Account & session hardening
+account-security:
+  password-policy:
+    min-length: 10
+    require-uppercase: true
+    require-lowercase: true
+    require-numbers: true
+    require-special-chars: true
+    max-attempts: 5
+    lockout-duration: 15m
+  two-factor:
+    enabled: true
+    issuer: "Farm's To Market"
+    backup-codes: 10
+  session-management:
+    max-concurrent-sessions: 3
+    session-timeout: 30m
+    remember-me-validity: P30D
+
+rate-limiting:
+  enabled: true
+  oauth2:
+    authorization-requests: 10/minute
+    token-requests: 20/minute
+    user-info-requests: 50/minute
+  social-login:
+    attempts: 5/minute
+  password-reset:
+    attempts: 3/hour
+
+# Audit log — events stored in DB, 90-day default (overridden per profile)
+audit:
+  enabled: true
+  events:
+    - AUTHENTICATION_SUCCESS
+    - AUTHENTICATION_FAILURE
+    - AUTHORIZATION_GRANTED
+    - AUTHORIZATION_DENIED
+    - TOKEN_ISSUED
+    - TOKEN_REFRESHED
+    - TOKEN_REVOKED
+    - SOCIAL_LOGIN_SUCCESS
+    - SOCIAL_LOGIN_FAILURE
+    - PASSWORD_CHANGED
+    - ACCOUNT_LOCKED
+    - ACCOUNT_UNLOCKED
+  storage:
+    type: database
+    retention: P90D
+
+external-services:
+  user-service:
+    url: ${USER_SERVICE_URL:http://user-service:9002}
+    timeout: 5s
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service:9023}
+    timeout: 10s

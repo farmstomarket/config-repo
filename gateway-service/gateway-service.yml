@@ -1,0 +1,52 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        # OAuth2 Authorization Server endpoints
+        - id: oauth2-authorization
+          uri: lb://oauth2-identity-service
+          predicates:
+            - Path=/oauth2/**
+          filters:
+            - StripPrefix=0
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenish-rate: 10
+                redis-rate-limiter.burst-capacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+        
+        # OAuth2 Login endpoints
+        - id: oauth2-login
+          uri: lb://oauth2-identity-service
+          predicates:
+            - Path=/login/**
+          filters:
+            - StripPrefix=0
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenish-rate: 5
+                redis-rate-limiter.burst-capacity: 10
+        
+        # JWT Well-known endpoints
+        - id: oauth2-jwks
+          uri: lb://oauth2-identity-service
+          predicates:
+            - Path=/.well-known/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: oauth2JwksCircuitBreaker
+                fallbackUri: forward:/fallback/jwks
+        
+        # User info endpoint
+        - id: oauth2-userinfo
+          uri: lb://oauth2-identity-service
+          predicates:
+            - Path=/userinfo
+          filters:
+            - StripPrefix=0
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenish-rate: 50
+                redis-rate-limiter.burst-capacity: 100

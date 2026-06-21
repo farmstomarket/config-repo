@@ -1,0 +1,250 @@
+server:
+  port: 9023
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
+    max-connections: 1000
+    connection-timeout: 20000
+    max-http-form-post-size: 2MB
+
+spring:
+  application:
+    name: referral-service
+
+  # Configuration JPA et base de données PostgreSQL
+  datasource:
+    url: jdbc:postgresql://dev-postgres.synthi-ai.org:5432/referral_db_dev
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: ReferralServiceHikariCP-Dev
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      leak-detection-threshold: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 25
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        connection:
+          provider_disables_autocommit: true
+    show-sql: true
+    open-in-view: false
+
+  # Configuration Redis pour le cache
+  data:
+    redis:
+      host: dev-redis.synthi-ai.org
+      port: 6379
+      password: ${REDIS_DEV_PASSWORD}
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 5000ms
+        shutdown-timeout: 100ms
+
+  # Configuration Kafka
+  kafka:
+    bootstrap-servers: dev-kafka.synthi-ai.org:9092
+    producer:
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      compression-type: gzip
+      linger-ms: 5
+      max-in-flight-requests-per-connection: 5
+      properties:
+        enable.idempotence: true
+        request.timeout.ms: 30000
+
+  # Configuration Spring Cloud
+  cloud:
+    consul:
+      host: dev-consul.synthi-ai.org
+      port: 8500
+      scheme: https
+      discovery:
+        enabled: true
+        service-name: referral-service
+        health-check-interval: 15s
+        health-check-timeout: 10s
+        health-check-critical-timeout: 30s
+        instance-id: referral-service-dev
+        ip-address:
+        tags:
+          - "version=1.0.0-dev"
+          - "environment=development"
+          - "team=farm-to-market"
+          - "service-type=microservice"
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: FULL
+          agents-service:
+            connect-timeout: 3000
+            read-timeout: 8000
+            logger-level: FULL
+
+  # Configuration de cache
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800000
+      cache-null-values: false
+      key-prefix: "referral-service-dev:"
+      use-key-prefix: true
+
+  # Configuration de sécurité
+  security:
+    oauth2:
+      client:
+        registration:
+          referral-service:
+            client-id: dev-referral-service-client
+            client-secret: dev-secret-key
+            authorization-grant-type: client_credentials
+            scope: read,write
+        provider:
+          referral-service:
+            token-uri: https://dev-oauth2.synthi-ai.com/oauth2/token
+            authorization-uri: https://dev-oauth2.synthi-ai.com/oauth2/authorize
+            user-info-uri: https://dev-oauth2.synthi-ai.com/oauth2/userinfo
+            jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-oauth2.synthi-ai.com
+          jwk-set-uri: https://dev-oauth2.synthi-ai.com/.well-known/jwks.json
+          audiences:
+            - dev-referral-service
+
+# Configuration des services externes
+services:
+  agents-service:
+    url: https://dev-agents.synthi-ai.org:9001
+    timeout: 10000
+    retry:
+      max-attempts: 3
+      delay: 1000
+  notification-service:
+    url: https://dev-notification.synthi-ai.org:8082
+    timeout: 15000
+    retry:
+      max-attempts: 3
+      delay: 2000
+
+# Configuration des seuils et limites métier
+business:
+  referral:
+    code:
+      length: 8
+      expiry-days: 365
+      max-uses: 100
+    reward:
+      min-purchase-amount: 25.00
+      default-reward-percentage: 0.05
+      max-reward-amount: 100.00
+    validation:
+      agent-cache-ttl: 900000
+      max-validation-retries: 3
+    expiration:
+      warning-days: 7,1
+      batch-size: 25
+      max-processing-time: 300000
+      cron: 0 0 */2 * * ?
+      warning-cron: 0 0 */12 * * ?
+      cleanup-cron: 0 0 3 * * ?
+  bonus:
+    base-amount: 5.00
+    performance-threshold: 5
+    loyalty-days-threshold: 90
+    milestone-increments: 3
+
+# Configuration Actuator pour monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      group:
+        liveness:
+          include: diskSpace,ping
+        readiness:
+          include: db,redis,consul
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  health:
+    defaults:
+      enabled: true
+    redis:
+      enabled: true
+    db:
+      enabled: true
+    consul:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: development
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  exposed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# Configuration des logs
+logging:
+  level:
+    com.i4u.synthi_ai.referralservice: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.cache: DEBUG
+    org.springframework.cloud.consul: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    io.lettuce.core: DEBUG
+    root: DEBUG
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
