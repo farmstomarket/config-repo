@@ -7,17 +7,19 @@ spring:
     name: logging-service
   elasticsearch:
     uris: https://20.116.218.195:9200
-    username: ${DEV_ELASTICSEARCH_USERNAME:elastic}
-    password: ${DEV_ELASTICSEARCH_PASSWORD}
+    username: ${ELASTICSEARCH_USERNAME:elastic}
+    password: ${ELASTICSEARCH_PASSWORD}
   kafka:
     consumer:
       group-id: logging-service-dev
       properties:
         spring.json.trusted.packages: com.agropastoral.*
     topics:
-      logs: agropastoral.logs${KAFKA_TOPIC_SUFFIX:.dev}
+      logs: agropastoral.logs
 
-      alerts: agropastoral.alerts${KAFKA_TOPIC_SUFFIX:.dev}
+
+      alerts: agropastoral.alerts
+
 
     bootstrap-servers: 20.116.218.195:9092
     producer: null

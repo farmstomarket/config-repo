@@ -3,8 +3,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/certification_db_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     jpa:
       database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -25,12 +25,12 @@ spring:
           issuer-uri: http://20.116.218.195:9020
           jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
-          - ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service}
+          - ${FUSIONAUTH_CLIENT_ID}
       client:
         registration:
           fusionauth:
-            client-id: ${DEV_FUSIONAUTH_CLIENT_ID:dev-certification-service-client}
-            client-secret: ${DEV_FUSIONAUTH_CLIENT_SECRET}
+            client-id: ${FUSIONAUTH_CLIENT_ID}
+            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             scope:
             - openid
@@ -76,7 +76,7 @@ spring:
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 300000
   cloud:
     consul:

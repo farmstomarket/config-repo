@@ -7,8 +7,8 @@ spring:
     name: payment-service
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/farmstomarket_payments_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000
@@ -210,35 +210,45 @@ app:
   kafka:
     topics:
       payment:
-        initiated: payment.payment.initiated${KAFKA_TOPIC_SUFFIX:.dev}
+        initiated: payment.payment.initiated
 
 
-        authorized: payment.payment.authorized${KAFKA_TOPIC_SUFFIX:.dev}
+
+        authorized: payment.payment.authorized
 
 
-        captured: payment.payment.captured${KAFKA_TOPIC_SUFFIX:.dev}
+
+        captured: payment.payment.captured
 
 
-        completed: payment.payment.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+        completed: payment.payment.completed
 
 
-        failed: payment.payment.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
+        failed: payment.payment.failed
 
 
-        refunded: payment.payment.refunded${KAFKA_TOPIC_SUFFIX:.dev}
+
+        refunded: payment.payment.refunded
 
 
-        cancelled: payment.payment.cancelled${KAFKA_TOPIC_SUFFIX:.dev}
+
+        cancelled: payment.payment.cancelled
+
 
 
       transaction:
-        recorded: payment.transaction.recorded${KAFKA_TOPIC_SUFFIX:.dev}
+        recorded: payment.transaction.recorded
 
 
-        disputed: payment.transaction.disputed${KAFKA_TOPIC_SUFFIX:.dev}
+
+        disputed: payment.transaction.disputed
 
 
-        settled: payment.transaction.settled${KAFKA_TOPIC_SUFFIX:.dev}
+
+        settled: payment.transaction.settled
+
 
 
       consumer:

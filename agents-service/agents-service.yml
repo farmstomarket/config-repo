@@ -3,8 +3,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/agents_db_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -42,7 +42,7 @@ spring:
       timeout: 300000
       repositories:
         enabled: false
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
   servlet:
     multipart:
       max-file-size: 25MB
@@ -55,12 +55,12 @@ spring:
           issuer-uri: http://20.116.218.195:9020
           jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
           audiences:
-          - ${DEV_FUSIONAUTH_CLIENT_ID:dev-agents-service}
+          - ${FUSIONAUTH_CLIENT_ID}
       client:
         registration:
           fusionauth:
-            client-id: ${DEV_FUSIONAUTH_CLIENT_ID:dev-agents-service-client}
-            client-secret: ${DEV_FUSIONAUTH_CLIENT_SECRET}
+            client-id: ${FUSIONAUTH_CLIENT_ID}
+            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             scope:
             - openid
@@ -95,15 +95,15 @@ spring:
         - version=1.0-dev
         - environment=development
 fusionauth:
-  apiKey: ${DEV_FUSIONAUTH_API_KEY}
-  applicationId: ${DEV_FUSIONAUTH_APP_ID}
+  apiKey: ${FUSIONAUTH_API_KEY}
+  applicationId: ${FUSIONAUTH_APP_ID}
   baseUrl: https://20.116.218.195:9020
 twilio:
-  account-sid: ${DEV_TWILIO_ACCOUNT_SID}
-  auth-token: ${DEV_TWILIO_AUTH_TOKEN}
-  phone-number: ${DEV_TWILIO_PHONE_NUMBER}
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  phone-number: ${TWILIO_PHONE_NUMBER}
   verification:
-    service-sid: ${DEV_TWILIO_VERIFICATION_SERVICE_SID}
+    service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}
 bucket4j:
   enabled: true
   filters:

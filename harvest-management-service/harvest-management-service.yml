@@ -4,11 +4,11 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/harvest_management_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/harvest_management_db_dev
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
     consul:
@@ -64,40 +64,52 @@ app:
   kafka:
     topics:
       harvest:
-        planned: crop.harvest.planned${KAFKA_TOPIC_SUFFIX:.dev}
+        planned: crop.harvest.planned
 
-        started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
 
-        completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+        started: crop.harvest.started
+
+
+        completed: crop.harvest.completed
+
 
         record:
-          created: crop.harvest.record.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.harvest.record.created
 
-          updated: crop.harvest.record.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.harvest.record.updated
+
 
       notification:
-        events: notification.harvest.events${KAFKA_TOPIC_SUFFIX:.dev}
+        events: notification.harvest.events
+
 
       harvest-events: harvest-events
       notifications: notification-events
       consumer:
         plantation:
-          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.plantation.created
 
 
-          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.plantation.updated
 
 
-          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          status-changed: crop.plantation.status.changed
 
 
-          events: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          events: crop.plantation.status.changed
+
 
         weather:
-          events: weather.alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+          events: weather.alert.triggered
+
 
         farming-status:
-          events: farming.status.updated${KAFKA_TOPIC_SUFFIX:.dev}
+          events: farming.status.updated
+
 
 
     dlq:

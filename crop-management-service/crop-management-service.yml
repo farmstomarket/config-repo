@@ -5,7 +5,7 @@ spring:
     redis:
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:6379}
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 60000
       connect-timeout: 2000
       repositories:
@@ -13,7 +13,7 @@ spring:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/crop_management_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/crop_management_db_dev
       auto-index-creation: true
   mongodb:
     uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/crop_management_db?appName=Cluster0}
@@ -64,36 +64,48 @@ app:
     topics:
       crop:
         farm:
-          created: crop.farm.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.farm.created
 
-          updated: crop.farm.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          status-changed: crop.farm.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: crop.farm.updated
+
+
+          status-changed: crop.farm.status.changed
+
 
         plantation:
-          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.plantation.created
 
-          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: crop.plantation.updated
+
+
+          status-changed: crop.plantation.status.changed
+
 
       imagery:
-        request: imagery.satellite.request${KAFKA_TOPIC_SUFFIX:.dev}
+        request: imagery.satellite.request
 
-        response: imagery.satellite.response${KAFKA_TOPIC_SUFFIX:.dev}
+
+        response: imagery.satellite.response
+
 
       consumer:
         proximity:
-          alerts: proximity.alerts.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+          alerts: proximity.alerts.triggered
+
 
         satellite:
-          images: satellite.images.processed${KAFKA_TOPIC_SUFFIX:.dev}
+          images: satellite.images.processed
+
 
       verification:
-        results: crop-management.verification.completed${KAFKA_TOPIC_SUFFIX:.dev}
+        results: crop-management.verification.completed
 
 
-        failed: crop-management.verification.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
+        failed: crop-management.verification.failed
+
 
 
     dlq:
@@ -117,8 +129,8 @@ resilience4j:
         timeoutDuration: 10s
 minio:
   url: https://20.116.218.195:9000
-  access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
-  secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
   bucket-name: crops-dev
 cache:
   ttl:

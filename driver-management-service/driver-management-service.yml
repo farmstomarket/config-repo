@@ -3,13 +3,13 @@ spring:
     name: driver-management-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/driver_management_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/driver_management_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
   kafka:
     consumer:
       group-id: driver-management-group-dev
@@ -89,9 +89,21 @@ resilience4j:
         maxRetryAttempts: 3
 kafka:
   topics:
-    driver-created: driver.created    driver-updated: driver.updated    driver-status-changed: driver.status_changed    driver-location-updated: driver.location_updated    driver-assigned: driver.assigned    driver-availability-changed: driver.availability_changed  consumer:
+    driver-created: driver.created
+    driver-updated: driver.updated
+    driver-status-changed: driver.status_changed
+    driver-location-updated: driver.location_updated
+    driver-assigned: driver.assigned
+    driver-availability-changed: driver.availability_changed
+  consumer:
     topics:
-      logistics-driver-needed: logistics.driver_needed      vehicle-allocated: transport.vehicle.allocated      vehicle-assigned: vehicle.assigned_to_driver      delivery-completed: delivery.completed      delivery-cancelled: delivery.delivery.cancelled      incident-reported: incident.reportedapp:
+      logistics-driver-needed: logistics.driver_needed
+      vehicle-allocated: transport.vehicle.allocated
+      vehicle-assigned: vehicle.assigned_to_driver
+      delivery-completed: delivery.completed
+      delivery-cancelled: delivery.delivery.cancelled
+      incident-reported: incident.reported
+app:
   outbox:
     relay:
       fixed-delay-ms: 5000

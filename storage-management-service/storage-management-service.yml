@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/storage_management_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/storage_management_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -10,7 +10,7 @@ spring:
       connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
       repositories:
         enabled: false
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       lettuce:
         pool:
           max-active: ${REDIS_POOL_MAX_ACTIVE:8}
@@ -99,79 +99,107 @@ server:
 app:
   kafka:
     topic:
-      lot-created: lot.created${KAFKA_TOPIC_SUFFIX:.dev}
+      lot-created: lot.created
 
 
-      lot-exited: lot.exited${KAFKA_TOPIC_SUFFIX:.dev}
+
+      lot-exited: lot.exited
 
 
-      alert-triggered: alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+
+      alert-triggered: alert.triggered
 
 
-      reservation-accepted: reservation.accepted${KAFKA_TOPIC_SUFFIX:.dev}
+
+      reservation-accepted: reservation.accepted
+
 
 
     consumer-topics:
-      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+      harvest-completed: crop.harvest.completed
+
 
 
     topics:
       storage:
         warehouse:
           capacity:
-            warning: storage.warehouse.capacity.warning${KAFKA_TOPIC_SUFFIX:.dev}
+            warning: storage.warehouse.capacity.warning
+
 
           status:
-            changed: storage.warehouse.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+            changed: storage.warehouse.status.changed
 
-          created: storage.warehouse.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-          updated: storage.warehouse.updated${KAFKA_TOPIC_SUFFIX:.dev}
+          created: storage.warehouse.created
 
-          deleted: storage.warehouse.deleted${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: storage.warehouse.updated
+
+
+          deleted: storage.warehouse.deleted
+
 
         lot:
-          created: storage.lot.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: storage.lot.created
 
-          updated: storage.lot.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          exited: storage.lot.exited${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: storage.lot.updated
 
-          expired: storage.lot.expired${KAFKA_TOPIC_SUFFIX:.dev}
+
+          exited: storage.lot.exited
+
+
+          expired: storage.lot.expired
+
 
         reservation:
-          created: storage.reservation.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: storage.reservation.created
 
-          accepted: storage.reservation.accepted${KAFKA_TOPIC_SUFFIX:.dev}
 
-          rejected: storage.reservation.rejected${KAFKA_TOPIC_SUFFIX:.dev}
+          accepted: storage.reservation.accepted
 
-          completed: storage.reservation.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          rejected: storage.reservation.rejected
+
+
+          completed: storage.reservation.completed
+
 
         alert:
-          triggered: storage.alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+          triggered: storage.alert.triggered
 
-          resolved: storage.alert.resolved${KAFKA_TOPIC_SUFFIX:.dev}
+
+          resolved: storage.alert.resolved
+
 
       consumer:
         harvest:
-          planned: crop.harvest.planned${KAFKA_TOPIC_SUFFIX:.dev}
+          planned: crop.harvest.planned
 
-          started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
 
-          completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+          started: crop.harvest.started
 
-          updated: crop.harvest.record.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          cancelled: crop.harvest.cancelled${KAFKA_TOPIC_SUFFIX:.dev}
+          completed: crop.harvest.completed
+
+
+          updated: crop.harvest.record.updated
+
+
+          cancelled: crop.harvest.cancelled
+
 
         product:
-          created: crop.product.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.product.created
 
-          updated: crop.product.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.product.updated
+
 
         plantation:
-          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+          status-changed: crop.plantation.status.changed
+
 
     dlq:
       suffix: ${KAFKA_DLQ_SUFFIX:.dlq}
@@ -180,9 +208,9 @@ app:
       retry-delay: ${KAFKA_DLQ_RETRY_DELAY:5000}
   webhook:
     svix:
-      api-key: ${SVIX_API_KEY:dev-svix-api-key}
+      api-key: ${SVIX_API_KEY}
       endpoint: ${SVIX_ENDPOINT:https://20.116.218.195}
-      app-id: ${SVIX_APP_ID:dev-app-storage}
+      app-id: ${SVIX_APP_ID}
       timeout: ${SVIX_TIMEOUT:10000}
     events:
       enabled: ${WEBHOOK_EVENTS_ENABLED:lot.created,warehouse.capacity.warning,lot.expired,reservation.created,warehouse.status.changed}

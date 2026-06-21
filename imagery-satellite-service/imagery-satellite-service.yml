@@ -25,7 +25,7 @@ spring:
     name: imagery-satellite-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/imagery_satellite_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/imagery_satellite_db_dev
   cloud:
     consul:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -52,19 +52,22 @@ spring:
 app:
   kafka:
     consumer-topics:
-      plantation-created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
+      plantation-created: crop.plantation.created
 
 
-      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      harvest-completed: crop.harvest.completed
 
 
-      imagery-requested: imagery.plantation.requested${KAFKA_TOPIC_SUFFIX:.dev}
+
+      imagery-requested: imagery.plantation.requested
+
 
 
 minio:
   url: https://20.116.218.195:9000
-  access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
-  secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
   bucket-name: satellite-images-dev
 satellite:
   providers:

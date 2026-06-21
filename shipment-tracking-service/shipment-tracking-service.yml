@@ -3,13 +3,13 @@ spring:
     name: shipment-tracking-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/shipment_tracking_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/shipment_tracking_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
   kafka:
     consumer:
       group-id: shipment-tracking-group-dev
@@ -26,8 +26,8 @@ spring:
       cache-null-values: false
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/timescaledb_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -145,46 +145,58 @@ resilience4j:
         - java.net.ConnectException
 kafka:
   topics:
-    shipment-created: shipment.created${KAFKA_TOPIC_SUFFIX:.dev}
+    shipment-created: shipment.created
+
 
 
     shipment-location-updated: shipment.location_updated
     shipment-status-updated: shipment.status_updated
-    shipment-delivered: shipment.delivered${KAFKA_TOPIC_SUFFIX:.dev}
+    shipment-delivered: shipment.delivered
 
 
-    shipment-delayed: shipment.delayed${KAFKA_TOPIC_SUFFIX:.dev}
+
+    shipment-delayed: shipment.delayed
 
 
-    shipment-incident: shipment.incident${KAFKA_TOPIC_SUFFIX:.dev}
+
+    shipment-incident: shipment.incident
 
 
-    shipment-tracking-events: shipment.tracking.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+    shipment-tracking-events: shipment.tracking.events
 
 
-    route-optimization-events: route.optimization.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+    route-optimization-events: route.optimization.events
 
 
-    notification-events: notification.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+    notification-events: notification.events
 
 
-    driver-management-events: driver.management.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+    driver-management-events: driver.management.events
 
 
-    transport-management-events: transport.management.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+    transport-management-events: transport.management.events
+
 
 
   consumer:
     topics:
       transport-location-updated: transport.vehicle_location_updated
       transport-status-changed: transport.vehicle_status_changed
-      delivery-assigned: delivery.assigned${KAFKA_TOPIC_SUFFIX:.dev}
+      delivery-assigned: delivery.assigned
 
 
-      delivery-completed: delivery.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      delivery-completed: delivery.completed
 
 
-      incident-reported: incident.reported${KAFKA_TOPIC_SUFFIX:.dev}
+
+      incident-reported: incident.reported
+
 
 
 app:

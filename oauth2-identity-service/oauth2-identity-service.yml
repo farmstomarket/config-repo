@@ -117,8 +117,8 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_OAUTH2_CLIENT_ID_DEV}
-            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET_DEV}
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET}
             client-name: Google
             scope:
             - openid
@@ -126,8 +126,8 @@ spring:
             - email
             redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
           github:
-            client-id: ${GITHUB_OAUTH2_CLIENT_ID_DEV}
-            client-secret: ${OAUTH2_GITHUB_CLIENT_SECRET}
+            client-id: ${GITHUB_OAUTH2_CLIENT_ID}
+            client-secret: ${GITHUB_OAUTH2_CLIENT_SECRET}
             client-name: GitHub
             scope:
             - user:email

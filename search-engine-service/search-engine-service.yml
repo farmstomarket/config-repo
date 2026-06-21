@@ -5,7 +5,7 @@ spring:
     active: dev
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/farmstomarket_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/farmstomarket_db_dev
       database: farmstomarket_db_dev
       auto-index-creation: true
     redis:
@@ -14,7 +14,7 @@ spring:
         - 20.116.218.195:7001
         - 20.116.218.195:7002
         - 20.116.218.195:7003
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -58,13 +58,13 @@ app:
   search:
     meilisearch:
       url: https://20.116.218.195:7700
-      apiKey: ${DEV_MEILISEARCH_API_KEY:dev-meilisearch-master-key}
+      apiKey: ${MEILISEARCH_API_KEY}
     milvus:
       enabled: true
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 19530
-      username: ${DEV_MILVUS_USERNAME:dev-user}
-      password: ${DEV_MILVUS_PASSWORD:dev-password}
+      username: ${MILVUS_USERNAME}
+      password: ${MILVUS_PASSWORD}
     hybrid:
       text-weight: 0.7
       vector-weight: 0.3

@@ -10,8 +10,8 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/delivery_scheduling_db_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -43,7 +43,7 @@ spring:
         - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_1:7001}
         - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_2:7002}
         - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_3:7003}
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
       lettuce:

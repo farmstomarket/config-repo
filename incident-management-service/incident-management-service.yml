@@ -5,7 +5,7 @@ spring:
     name: incident-management-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/incident_management_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/incident_management_dev
       database: incident_management_dev
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -16,7 +16,7 @@ spring:
           max-active: 4
           max-idle: 4
           min-idle: 0
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
   kafka:
     consumer:
       group-id: incident-management-service-dev
@@ -61,35 +61,45 @@ grpc:
       port: 9082
   topics:
     incident:
-      created: incident.created${KAFKA_TOPIC_SUFFIX:.dev}
+      created: incident.created
 
 
-      updated: incident.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+      updated: incident.updated
 
 
-      resolved: incident.resolved${KAFKA_TOPIC_SUFFIX:.dev}
+
+      resolved: incident.resolved
 
 
-      assigned: incident.assigned${KAFKA_TOPIC_SUFFIX:.dev}
+
+      assigned: incident.assigned
 
 
-      closed: incident.closed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      closed: incident.closed
 
 
-      escalated: incident.escalated${KAFKA_TOPIC_SUFFIX:.dev}
+
+      escalated: incident.escalated
+
 
 
     event:
-      vehicle-breakdown: incident.vehicle.breakdown${KAFKA_TOPIC_SUFFIX:.dev}
+      vehicle-breakdown: incident.vehicle.breakdown
 
 
-      delay-reported: incident.delay.reported${KAFKA_TOPIC_SUFFIX:.dev}
+
+      delay-reported: incident.delay.reported
 
 
-      road-closure: incident.road.closure${KAFKA_TOPIC_SUFFIX:.dev}
+
+      road-closure: incident.road.closure
 
 
-      weather: incident.weather${KAFKA_TOPIC_SUFFIX:.dev}
+
+      weather: incident.weather
+
 
 
 integration:

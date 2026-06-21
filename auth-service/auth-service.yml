@@ -5,8 +5,8 @@ spring:
     name: auth-service
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/farmstomarket_auth_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -29,16 +29,20 @@ app:
   kafka:
     topics:
       auth:
-        login: auth.login.success${KAFKA_TOPIC_SUFFIX:.dev}
+        login: auth.login.success
 
 
-        logout: auth.logout${KAFKA_TOPIC_SUFFIX:.dev}
+
+        logout: auth.logout
 
 
-        token-revoked: auth.token.revoked${KAFKA_TOPIC_SUFFIX:.dev}
+
+        token-revoked: auth.token.revoked
 
 
-        failed-attempt: auth.login.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
+        failed-attempt: auth.login.failed
+
 
 
     dlq:

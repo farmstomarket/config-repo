@@ -7,7 +7,7 @@ spring:
     name: metrics-service
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/metrics_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/metrics_dev
       auto-index-creation: true
   cache:
     cache-names: metrics,dashboards,alerts
@@ -64,7 +64,7 @@ prometheus:
     path: /actuator/prometheus
 grafana:
   endpoint: https://20.116.218.195:3000/api
-  apiKey: ${DEV_GRAFANA_API_KEY:dev-grafana-key}
+  apiKey: ${GRAFANA_API_KEY}
 app:
   metrics:
     collection:

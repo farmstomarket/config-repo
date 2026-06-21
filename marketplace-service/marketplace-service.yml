@@ -14,12 +14,12 @@ spring:
     - buckets
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/marketplace_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/marketplace_db_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
   elasticsearch:
@@ -85,39 +85,51 @@ app:
     topics:
       marketplace:
         product:
-          published: marketplace.product.published${KAFKA_TOPIC_SUFFIX:.dev}
+          published: marketplace.product.published
 
-          updated: marketplace.product.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          status-changed: marketplace.product.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: marketplace.product.updated
 
-          viewed: marketplace.product.viewed${KAFKA_TOPIC_SUFFIX:.dev}
 
-          sold: marketplace.product.sold${KAFKA_TOPIC_SUFFIX:.dev}
+          status-changed: marketplace.product.status.changed
 
-          enrichment: marketplace.product.enrichment${KAFKA_TOPIC_SUFFIX:.dev}
+
+          viewed: marketplace.product.viewed
+
+
+          sold: marketplace.product.sold
+
+
+          enrichment: marketplace.product.enrichment
+
 
 
         order:
-          created: marketplace.order.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: marketplace.order.created
 
-          updated: marketplace.order.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: marketplace.order.updated
+
 
         notification:
-          general: marketplace.notification.general${KAFKA_TOPIC_SUFFIX:.dev}
+          general: marketplace.notification.general
+
 
 
       consumer:
         harvest:
           events: harvest-events
         plantation:
-          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
+          created: crop.plantation.created
 
 
-          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.plantation.updated
 
 
-          status-changed: crop.plantation.status-changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          status-changed: crop.plantation.status-changed
+
 
 
         farm:
@@ -128,10 +140,12 @@ app:
           growth-stage-updated: growth-stage-updated
           alert-triggered: farming-alert-triggered
         livestock:
-          updated: livestock.entity.updated${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: livestock.entity.updated
+
 
         crop:
-          updated: crop.entity.updated${KAFKA_TOPIC_SUFFIX:.dev}
+          updated: crop.entity.updated
+
 
     default-replicas: ${KAFKA_DEFAULT_REPLICAS:3}
     dlq:

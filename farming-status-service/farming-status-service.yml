@@ -7,11 +7,11 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/farming_status_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/farming_status_db_dev
     redis:
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:7001,20.116.218.195:7002,20.116.218.195:7003}
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
       repositories:
@@ -76,13 +76,16 @@ agrotech:
     consumer-topics:
       plantation-created: plantation-created.dev
       plantation-updated: plantation-updated.dev
-      plantation-status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+      plantation-status-changed: crop.plantation.status.changed
 
 
-      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      harvest-completed: crop.harvest.completed
 
 
-      harvest-started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
+
+      harvest-started: crop.harvest.started
+
 
 
       growth-stage-updated: growth-stage-updated

@@ -6,7 +6,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://${DEV_MONGO_USERNAME}:${DEV_MONGO_PASSWORD}@20.116.218.195:27017/media_storage_db_dev
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/media_storage_db_dev
       auto-index-creation: true
     redis:
       cluster:
@@ -14,7 +14,7 @@ spring:
         - ${REDIS_NODE_1:20.116.218.195:7001}
         - ${REDIS_NODE_2:20.116.218.195:7002}
         - ${REDIS_NODE_3:20.116.218.195:7003}
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       timeout: 30000
       connect-timeout: 2000
       lettuce:
@@ -65,8 +65,8 @@ spring:
         - environment=development
 minio:
   endpoint: https://20.116.218.195:9000
-  access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}
-  secret-key: ${DEV_MINIO_SECRET_KEY:dev-secret-key}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
   bucket:
     name: media-files-dev
     auto-create: true
@@ -142,20 +142,25 @@ media:
 app:
   kafka:
     consumer-topics:
-      imagery-processed: imagery.plantation.processed${KAFKA_TOPIC_SUFFIX:.dev}
+      imagery-processed: imagery.plantation.processed
+
 
 
     topics:
-      media-uploaded: media.file.uploaded${KAFKA_TOPIC_SUFFIX:.dev}
+      media-uploaded: media.file.uploaded
 
 
-      media-processing: media.file.processing${KAFKA_TOPIC_SUFFIX:.dev}
+
+      media-processing: media.file.processing
 
 
-      media-accessed: media.file.accessed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      media-accessed: media.file.accessed
 
 
-      media-deleted: media.file.deleted${KAFKA_TOPIC_SUFFIX:.dev}
+
+      media-deleted: media.file.deleted
+
 
 
 resilience4j:

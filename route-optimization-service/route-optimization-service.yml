@@ -7,8 +7,8 @@ spring:
     name: route-optimization-service
   datasource:
     url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/route_optimization_dev
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -30,7 +30,7 @@ spring:
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_DEV_PASSWORD}
+      password: ${REDIS_PASSWORD}
       database: 0
       timeout: 2000ms
       lettuce:
@@ -42,8 +42,8 @@ spring:
     mongodb:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 27017
-      username: ${DEV_MONGO_USERNAME}
-      password: ${DEV_MONGO_PASSWORD}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
       database: route_optimization_logs_dev
   kafka:
     bootstrap-servers: 20.116.218.195:9092
