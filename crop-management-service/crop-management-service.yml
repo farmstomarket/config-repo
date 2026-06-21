@@ -64,25 +64,37 @@ app:
     topics:
       crop:
         farm:
-          created: crop.farm.created.dev
-          updated: crop.farm.updated.dev
-          status-changed: crop.farm.status.changed.dev
+          created: crop.farm.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.farm.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          status-changed: crop.farm.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
         plantation:
-          created: crop.plantation.created.dev
-          updated: crop.plantation.updated.dev
-          status-changed: crop.plantation.status.changed.dev
+          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
       imagery:
-        request: imagery.satellite.request.dev
-        response: imagery.satellite.response.dev
+        request: imagery.satellite.request${KAFKA_TOPIC_SUFFIX:.dev}
+
+        response: imagery.satellite.response${KAFKA_TOPIC_SUFFIX:.dev}
+
       consumer:
         proximity:
-          alerts: proximity.alerts.triggered.dev
-        satellite:
-          images: satellite.images.processed.dev
-      verification:
-        results: crop-management.verification.completed.dev
+          alerts: proximity.alerts.triggered${KAFKA_TOPIC_SUFFIX:.dev}
 
-        failed: crop-management.verification.failed.dev
+        satellite:
+          images: satellite.images.processed${KAFKA_TOPIC_SUFFIX:.dev}
+
+      verification:
+        results: crop-management.verification.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        failed: crop-management.verification.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     dlq:
       suffix: .dlq

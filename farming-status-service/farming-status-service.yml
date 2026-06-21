@@ -76,11 +76,14 @@ agrotech:
     consumer-topics:
       plantation-created: plantation-created.dev
       plantation-updated: plantation-updated.dev
-      plantation-status-changed: crop.plantation.status.changed.dev
+      plantation-status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
 
-      harvest-completed: crop.harvest.completed.dev
 
-      harvest-started: crop.harvest.started.dev
+      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      harvest-started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       growth-stage-updated: growth-stage-updated
       weather-alert: weather-alert.dev

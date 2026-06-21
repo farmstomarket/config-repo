@@ -211,41 +211,57 @@ app:
   kafka:
     topics:
       notification:
-        general: notification.general.dev
+        general: notification.general${KAFKA_TOPIC_SUFFIX:.dev}
 
-        priority: notification.priority.dev
 
-        batch: notification.batch.dev
+        priority: notification.priority${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        batch: notification.batch${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         email:
-          send: notification.email.send.dev
+          send: notification.email.send${KAFKA_TOPIC_SUFFIX:.dev}
 
-          sent: notification.email.sent.dev
 
-          failed: notification.email.failed.dev
+          sent: notification.email.sent${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+          failed: notification.email.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         sms:
-          send: notification.sms.send.dev
+          send: notification.sms.send${KAFKA_TOPIC_SUFFIX:.dev}
 
-          sent: notification.sms.sent.dev
 
-          failed: notification.sms.failed.dev
+          sent: notification.sms.sent${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+          failed: notification.sms.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         push:
-          send: notification.push.send.dev
+          send: notification.push.send${KAFKA_TOPIC_SUFFIX:.dev}
 
-          sent: notification.push.sent.dev
 
-          failed: notification.push.failed.dev
+          sent: notification.push.sent${KAFKA_TOPIC_SUFFIX:.dev}
 
-        harvest: notification.harvest.events.dev
+
+          failed: notification.push.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        harvest: notification.harvest.events${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         webhook:
-          send: notification.webhook.send.dev
+          send: notification.webhook.send${KAFKA_TOPIC_SUFFIX:.dev}
 
-          sent: notification.webhook.sent.dev
 
-          failed: notification.webhook.failed.dev
+          sent: notification.webhook.sent${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+          failed: notification.webhook.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       consumer:
         order-events: marketplace.order.*
@@ -253,13 +269,17 @@ app:
         delivery-events: delivery.delivery.*
         alert-events: alert.*
     consumer-topics:
-      plantation-created: crop.plantation.created.dev
+      plantation-created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-      plantation-status-changed: crop.plantation.status.changed.dev
 
-      harvest-completed: crop.harvest.completed.dev
+      plantation-status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
 
-      storage-alert: storage.alert.triggered.dev
+
+      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      storage-alert: storage.alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     dlq:
       suffix: .dlq

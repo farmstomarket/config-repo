@@ -118,15 +118,20 @@ app:
   kafka:
     topics:
       user:
-        created: user.created.dev
+        created: user.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-        updated: user.updated.dev
 
-        deleted: user.deleted.dev
+        updated: user.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-        verified: user.verified.dev
 
-        password-changed: user.password.changed.dev
+        deleted: user.deleted${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        verified: user.verified${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        password-changed: user.password.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     dlq:
       suffix: .dlq

@@ -142,16 +142,21 @@ media:
 app:
   kafka:
     consumer-topics:
-      imagery-processed: imagery.plantation.processed.dev
+      imagery-processed: imagery.plantation.processed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     topics:
-      media-uploaded: media.file.uploaded.dev
+      media-uploaded: media.file.uploaded${KAFKA_TOPIC_SUFFIX:.dev}
 
-      media-processing: media.file.processing.dev
 
-      media-accessed: media.file.accessed.dev
+      media-processing: media.file.processing${KAFKA_TOPIC_SUFFIX:.dev}
 
-      media-deleted: media.file.deleted.dev
+
+      media-accessed: media.file.accessed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      media-deleted: media.file.deleted${KAFKA_TOPIC_SUFFIX:.dev}
+
 
 resilience4j:
   circuitbreaker:

@@ -210,26 +210,36 @@ app:
   kafka:
     topics:
       payment:
-        initiated: payment.payment.initiated.dev
+        initiated: payment.payment.initiated${KAFKA_TOPIC_SUFFIX:.dev}
 
-        authorized: payment.payment.authorized.dev
 
-        captured: payment.payment.captured.dev
+        authorized: payment.payment.authorized${KAFKA_TOPIC_SUFFIX:.dev}
 
-        completed: payment.payment.completed.dev
 
-        failed: payment.payment.failed.dev
+        captured: payment.payment.captured${KAFKA_TOPIC_SUFFIX:.dev}
 
-        refunded: payment.payment.refunded.dev
 
-        cancelled: payment.payment.cancelled.dev
+        completed: payment.payment.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        failed: payment.payment.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        refunded: payment.payment.refunded${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        cancelled: payment.payment.cancelled${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       transaction:
-        recorded: payment.transaction.recorded.dev
+        recorded: payment.transaction.recorded${KAFKA_TOPIC_SUFFIX:.dev}
 
-        disputed: payment.transaction.disputed.dev
 
-        settled: payment.transaction.settled.dev
+        disputed: payment.transaction.disputed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        settled: payment.transaction.settled${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       consumer:
         orders: marketplace.order.*

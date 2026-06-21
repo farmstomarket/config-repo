@@ -64,29 +64,41 @@ app:
   kafka:
     topics:
       harvest:
-        planned: crop.harvest.planned.dev
-        started: crop.harvest.started.dev
-        completed: crop.harvest.completed.dev
+        planned: crop.harvest.planned${KAFKA_TOPIC_SUFFIX:.dev}
+
+        started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
+
+        completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
         record:
-          created: crop.harvest.record.created.dev
-          updated: crop.harvest.record.updated.dev
+          created: crop.harvest.record.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.harvest.record.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
       notification:
-        events: notification.harvest.events.dev
+        events: notification.harvest.events${KAFKA_TOPIC_SUFFIX:.dev}
+
       harvest-events: harvest-events
       notifications: notification-events
       consumer:
         plantation:
-          created: crop.plantation.created.dev
+          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-          updated: crop.plantation.updated.dev
 
-          status-changed: crop.plantation.status.changed.dev
+          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-          events: crop.plantation.status.changed.dev
+
+          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+          events: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
         weather:
-          events: weather.alert.triggered.dev
+          events: weather.alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+
         farming-status:
-          events: farming.status.updated.dev
+          events: farming.status.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     dlq:
       suffix: .dlq

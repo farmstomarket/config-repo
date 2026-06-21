@@ -145,35 +145,47 @@ resilience4j:
         - java.net.ConnectException
 kafka:
   topics:
-    shipment-created: shipment.created.dev
+    shipment-created: shipment.created${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     shipment-location-updated: shipment.location_updated
     shipment-status-updated: shipment.status_updated
-    shipment-delivered: shipment.delivered.dev
+    shipment-delivered: shipment.delivered${KAFKA_TOPIC_SUFFIX:.dev}
 
-    shipment-delayed: shipment.delayed.dev
 
-    shipment-incident: shipment.incident.dev
+    shipment-delayed: shipment.delayed${KAFKA_TOPIC_SUFFIX:.dev}
 
-    shipment-tracking-events: shipment.tracking.events.dev
 
-    route-optimization-events: route.optimization.events.dev
+    shipment-incident: shipment.incident${KAFKA_TOPIC_SUFFIX:.dev}
 
-    notification-events: notification.events.dev
 
-    driver-management-events: driver.management.events.dev
+    shipment-tracking-events: shipment.tracking.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-    transport-management-events: transport.management.events.dev
+
+    route-optimization-events: route.optimization.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+    notification-events: notification.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+    driver-management-events: driver.management.events${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+    transport-management-events: transport.management.events${KAFKA_TOPIC_SUFFIX:.dev}
+
 
   consumer:
     topics:
       transport-location-updated: transport.vehicle_location_updated
       transport-status-changed: transport.vehicle_status_changed
-      delivery-assigned: delivery.assigned.dev
+      delivery-assigned: delivery.assigned${KAFKA_TOPIC_SUFFIX:.dev}
 
-      delivery-completed: delivery.completed.dev
 
-      incident-reported: incident.reported.dev
+      delivery-completed: delivery.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      incident-reported: incident.reported${KAFKA_TOPIC_SUFFIX:.dev}
+
 
 app:
   outbox:

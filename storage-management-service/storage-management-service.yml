@@ -99,52 +99,80 @@ server:
 app:
   kafka:
     topic:
-      lot-created: lot.created.dev
+      lot-created: lot.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-      lot-exited: lot.exited.dev
 
-      alert-triggered: alert.triggered.dev
+      lot-exited: lot.exited${KAFKA_TOPIC_SUFFIX:.dev}
 
-      reservation-accepted: reservation.accepted.dev
+
+      alert-triggered: alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      reservation-accepted: reservation.accepted${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     consumer-topics:
-      harvest-completed: crop.harvest.completed.dev
+      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     topics:
       storage:
         warehouse:
           capacity:
-            warning: storage.warehouse.capacity.warning.dev
+            warning: storage.warehouse.capacity.warning${KAFKA_TOPIC_SUFFIX:.dev}
+
           status:
-            changed: storage.warehouse.status.changed.dev
-          created: storage.warehouse.created.dev
-          updated: storage.warehouse.updated.dev
-          deleted: storage.warehouse.deleted.dev
+            changed: storage.warehouse.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          created: storage.warehouse.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: storage.warehouse.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          deleted: storage.warehouse.deleted${KAFKA_TOPIC_SUFFIX:.dev}
+
         lot:
-          created: storage.lot.created.dev
-          updated: storage.lot.updated.dev
-          exited: storage.lot.exited.dev
-          expired: storage.lot.expired.dev
+          created: storage.lot.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: storage.lot.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          exited: storage.lot.exited${KAFKA_TOPIC_SUFFIX:.dev}
+
+          expired: storage.lot.expired${KAFKA_TOPIC_SUFFIX:.dev}
+
         reservation:
-          created: storage.reservation.created.dev
-          accepted: storage.reservation.accepted.dev
-          rejected: storage.reservation.rejected.dev
-          completed: storage.reservation.completed.dev
+          created: storage.reservation.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          accepted: storage.reservation.accepted${KAFKA_TOPIC_SUFFIX:.dev}
+
+          rejected: storage.reservation.rejected${KAFKA_TOPIC_SUFFIX:.dev}
+
+          completed: storage.reservation.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
         alert:
-          triggered: storage.alert.triggered.dev
-          resolved: storage.alert.resolved.dev
+          triggered: storage.alert.triggered${KAFKA_TOPIC_SUFFIX:.dev}
+
+          resolved: storage.alert.resolved${KAFKA_TOPIC_SUFFIX:.dev}
+
       consumer:
         harvest:
-          planned: crop.harvest.planned.dev
-          started: crop.harvest.started.dev
-          completed: crop.harvest.completed.dev
-          updated: crop.harvest.record.updated.dev
-          cancelled: crop.harvest.cancelled.dev
+          planned: crop.harvest.planned${KAFKA_TOPIC_SUFFIX:.dev}
+
+          started: crop.harvest.started${KAFKA_TOPIC_SUFFIX:.dev}
+
+          completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.harvest.record.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          cancelled: crop.harvest.cancelled${KAFKA_TOPIC_SUFFIX:.dev}
+
         product:
-          created: crop.product.created.dev
-          updated: crop.product.updated.dev
+          created: crop.product.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: crop.product.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
         plantation:
-          status-changed: crop.plantation.status.changed.dev
+          status-changed: crop.plantation.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
     dlq:
       suffix: ${KAFKA_DLQ_SUFFIX:.dlq}
       max-retries: ${KAFKA_DLQ_MAX_RETRIES:3}

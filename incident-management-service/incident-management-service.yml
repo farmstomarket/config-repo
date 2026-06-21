@@ -61,26 +61,36 @@ grpc:
       port: 9082
   topics:
     incident:
-      created: incident.created.dev
+      created: incident.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-      updated: incident.updated.dev
 
-      resolved: incident.resolved.dev
+      updated: incident.updated${KAFKA_TOPIC_SUFFIX:.dev}
 
-      assigned: incident.assigned.dev
 
-      closed: incident.closed.dev
+      resolved: incident.resolved${KAFKA_TOPIC_SUFFIX:.dev}
 
-      escalated: incident.escalated.dev
+
+      assigned: incident.assigned${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      closed: incident.closed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      escalated: incident.escalated${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     event:
-      vehicle-breakdown: incident.vehicle.breakdown.dev
+      vehicle-breakdown: incident.vehicle.breakdown${KAFKA_TOPIC_SUFFIX:.dev}
 
-      delay-reported: incident.delay.reported.dev
 
-      road-closure: incident.road.closure.dev
+      delay-reported: incident.delay.reported${KAFKA_TOPIC_SUFFIX:.dev}
 
-      weather: incident.weather.dev
+
+      road-closure: incident.road.closure${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      weather: incident.weather${KAFKA_TOPIC_SUFFIX:.dev}
+
 
 integration:
   weather-api:

@@ -15,8 +15,10 @@ spring:
       properties:
         spring.json.trusted.packages: com.agropastoral.*
     topics:
-      logs: agropastoral.logs.dev
-      alerts: agropastoral.alerts.dev
+      logs: agropastoral.logs${KAFKA_TOPIC_SUFFIX:.dev}
+
+      alerts: agropastoral.alerts${KAFKA_TOPIC_SUFFIX:.dev}
+
     bootstrap-servers: 20.116.218.195:9092
     producer: null
   cloud:

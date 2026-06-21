@@ -29,13 +29,17 @@ app:
   kafka:
     topics:
       auth:
-        login: auth.login.success.dev
+        login: auth.login.success${KAFKA_TOPIC_SUFFIX:.dev}
 
-        logout: auth.logout.dev
 
-        token-revoked: auth.token.revoked.dev
+        logout: auth.logout${KAFKA_TOPIC_SUFFIX:.dev}
 
-        failed-attempt: auth.login.failed.dev
+
+        token-revoked: auth.token.revoked${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        failed-attempt: auth.login.failed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
     dlq:
       suffix: .dlq

@@ -18,44 +18,63 @@ spring:
 app:
   kafka:
     topics:
-      verification-events: agent-verification.verification.events.dev
+      verification-events: agent-verification.verification.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      pairing-events: agent-verification.pairing.events.dev
 
-      task-events: agent-verification.task.events.dev
+      pairing-events: agent-verification.pairing.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      farm-events: farm-management.farm.events.dev
 
-      plantation-events: crop-management.plantation.events.dev
+      task-events: agent-verification.task.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      harvest-events: harvest-management.harvest.events.dev
 
-      storage-events: storage-management.storage.events.dev
+      farm-events: farm-management.farm.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      operation-requests: agent-verification.operation.requests.dev
 
-      operation-responses: agent-verification.operation.responses.dev
+      plantation-events: crop-management.plantation.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      farm-operation-requests: farm-management.operation.requests.dev
 
-      crop-operation-requests: crop-management.operation.requests.dev
+      harvest-events: harvest-management.harvest.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      harvest-operation-requests: harvest-management.operation.requests.dev
 
-      harvest-record-operation-requests: harvest-management.record.operation.requests.dev
+      storage-events: storage-management.storage.events${KAFKA_TOPIC_SUFFIX:.dev}
 
-      mission-completed-events: agent-verification.mission.completed.dev
+
+      operation-requests: agent-verification.operation.requests${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      operation-responses: agent-verification.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      farm-operation-requests: farm-management.operation.requests${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      crop-operation-requests: crop-management.operation.requests${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      harvest-operation-requests: harvest-management.operation.requests${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      harvest-record-operation-requests: harvest-management.record.operation.requests${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      mission-completed-events: agent-verification.mission.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       responses:
-        farm-management: farm-management.operation.responses.dev
+        farm-management: farm-management.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
 
-        crop-management: crop-management.operation.responses.dev
 
-        harvest-management: harvest-management.operation.responses.dev
+        crop-management: crop-management.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
 
-        harvest-record-management: harvest-management.record.operation.responses.dev
 
-        agent-verification: agent-verification.operation.responses.dev
+        harvest-management: harvest-management.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        harvest-record-management: harvest-management.record.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+        agent-verification: agent-verification.operation.responses${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       target-services:
         farm-management: farm-management-service

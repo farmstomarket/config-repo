@@ -85,28 +85,40 @@ app:
     topics:
       marketplace:
         product:
-          published: marketplace.product.published.dev
-          updated: marketplace.product.updated.dev
-          status-changed: marketplace.product.status.changed.dev
-          viewed: marketplace.product.viewed.dev
-          sold: marketplace.product.sold.dev
-          enrichment: marketplace.product.enrichment.dev
+          published: marketplace.product.published${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: marketplace.product.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+          status-changed: marketplace.product.status.changed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          viewed: marketplace.product.viewed${KAFKA_TOPIC_SUFFIX:.dev}
+
+          sold: marketplace.product.sold${KAFKA_TOPIC_SUFFIX:.dev}
+
+          enrichment: marketplace.product.enrichment${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         order:
-          created: marketplace.order.created.dev
-          updated: marketplace.order.updated.dev
+          created: marketplace.order.created${KAFKA_TOPIC_SUFFIX:.dev}
+
+          updated: marketplace.order.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
         notification:
-          general: marketplace.notification.general.dev
+          general: marketplace.notification.general${KAFKA_TOPIC_SUFFIX:.dev}
+
 
       consumer:
         harvest:
           events: harvest-events
         plantation:
-          created: crop.plantation.created.dev
+          created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-          updated: crop.plantation.updated.dev
 
-          status-changed: crop.plantation.status-changed.dev
+          updated: crop.plantation.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+          status-changed: crop.plantation.status-changed${KAFKA_TOPIC_SUFFIX:.dev}
+
 
         farm:
           events: farm-events
@@ -116,9 +128,11 @@ app:
           growth-stage-updated: growth-stage-updated
           alert-triggered: farming-alert-triggered
         livestock:
-          updated: livestock.entity.updated.dev
+          updated: livestock.entity.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
         crop:
-          updated: crop.entity.updated.dev
+          updated: crop.entity.updated${KAFKA_TOPIC_SUFFIX:.dev}
+
     default-replicas: ${KAFKA_DEFAULT_REPLICAS:3}
     dlq:
       suffix: .dlq

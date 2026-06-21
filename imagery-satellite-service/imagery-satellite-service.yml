@@ -52,11 +52,14 @@ spring:
 app:
   kafka:
     consumer-topics:
-      plantation-created: crop.plantation.created.dev
+      plantation-created: crop.plantation.created${KAFKA_TOPIC_SUFFIX:.dev}
 
-      harvest-completed: crop.harvest.completed.dev
 
-      imagery-requested: imagery.plantation.requested.dev
+      harvest-completed: crop.harvest.completed${KAFKA_TOPIC_SUFFIX:.dev}
+
+
+      imagery-requested: imagery.plantation.requested${KAFKA_TOPIC_SUFFIX:.dev}
+
 
 minio:
   url: https://20.116.218.195:9000
