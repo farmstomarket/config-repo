@@ -89,19 +89,12 @@ resilience4j:
         maxRetryAttempts: 3
 kafka:
   topics:
-    driver-created: driver.created.dev
-    driver-updated: driver.updated.dev
-    driver-status-changed: driver.status_changed.dev
-    driver-location-updated: driver.location_updated.dev
-    driver-assigned: driver.assigned.dev
-    driver-availability-changed: driver.availability_changed.dev
-  consumer:
+    driver-created: driver.created    driver-updated: driver.updated    driver-status-changed: driver.status_changed    driver-location-updated: driver.location_updated    driver-assigned: driver.assigned    driver-availability-changed: driver.availability_changed  consumer:
     topics:
-      logistics-driver-needed: logistics.driver_needed.dev
-      vehicle-assigned: vehicle.assigned_to_driver.dev
-      delivery-completed: delivery.completed.dev
-      delivery-cancelled: delivery.cancelled.dev
-      incident-reported: incident.reported.dev
+      logistics-driver-needed: logistics.driver_needed      vehicle-allocated: transport.vehicle.allocated      vehicle-assigned: vehicle.assigned_to_driver      delivery-completed: delivery.completed      delivery-cancelled: delivery.delivery.cancelled      incident-reported: incident.reportedapp:
+  outbox:
+    relay:
+      fixed-delay-ms: 5000
 grpc:
   server:
     port: 9090

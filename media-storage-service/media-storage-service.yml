@@ -142,12 +142,17 @@ media:
 app:
   kafka:
     consumer-topics:
-      imagery-processed: imagery.plantation.processed
+      imagery-processed: imagery.plantation.processed.dev
+
     topics:
-      media-uploaded: media.file.uploaded
-      media-processing: media.file.processing
-      media-accessed: media.file.accessed
-      media-deleted: media.file.deleted
+      media-uploaded: media.file.uploaded.dev
+
+      media-processing: media.file.processing.dev
+
+      media-accessed: media.file.accessed.dev
+
+      media-deleted: media.file.deleted.dev
+
 resilience4j:
   circuitbreaker:
     instances:

@@ -18,26 +18,45 @@ spring:
 app:
   kafka:
     topics:
-      verification-events: agent-verification.verification.events
-      pairing-events: agent-verification.pairing.events
-      task-events: agent-verification.task.events
-      farm-events: farm-management.farm.events
-      plantation-events: crop-management.plantation.events
-      harvest-events: harvest-management.harvest.events
-      storage-events: storage-management.storage.events
-      operation-requests: agent-verification.operation.requests
-      operation-responses: agent-verification.operation.responses
-      farm-operation-requests: farm-management.operation.requests
-      crop-operation-requests: crop-management.operation.requests
-      harvest-operation-requests: harvest-management.operation.requests
-      harvest-record-operation-requests: harvest-management.record.operation.requests
-      mission-completed-events: agent-verification.mission.completed
+      verification-events: agent-verification.verification.events.dev
+
+      pairing-events: agent-verification.pairing.events.dev
+
+      task-events: agent-verification.task.events.dev
+
+      farm-events: farm-management.farm.events.dev
+
+      plantation-events: crop-management.plantation.events.dev
+
+      harvest-events: harvest-management.harvest.events.dev
+
+      storage-events: storage-management.storage.events.dev
+
+      operation-requests: agent-verification.operation.requests.dev
+
+      operation-responses: agent-verification.operation.responses.dev
+
+      farm-operation-requests: farm-management.operation.requests.dev
+
+      crop-operation-requests: crop-management.operation.requests.dev
+
+      harvest-operation-requests: harvest-management.operation.requests.dev
+
+      harvest-record-operation-requests: harvest-management.record.operation.requests.dev
+
+      mission-completed-events: agent-verification.mission.completed.dev
+
       responses:
-        farm-management: farm-management.operation.responses
-        crop-management: crop-management.operation.responses
-        harvest-management: harvest-management.operation.responses
-        harvest-record-management: harvest-management.record.operation.responses
-        agent-verification: agent-verification.operation.responses
+        farm-management: farm-management.operation.responses.dev
+
+        crop-management: crop-management.operation.responses.dev
+
+        harvest-management: harvest-management.operation.responses.dev
+
+        harvest-record-management: harvest-management.record.operation.responses.dev
+
+        agent-verification: agent-verification.operation.responses.dev
+
       target-services:
         farm-management: farm-management-service
         crop-management: crop-management-service

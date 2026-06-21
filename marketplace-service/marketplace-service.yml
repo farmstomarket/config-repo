@@ -90,19 +90,24 @@ app:
           status-changed: marketplace.product.status.changed.dev
           viewed: marketplace.product.viewed.dev
           sold: marketplace.product.sold.dev
-          enrichment: marketplace.product.enrichment
+          enrichment: marketplace.product.enrichment.dev
+
         order:
           created: marketplace.order.created.dev
           updated: marketplace.order.updated.dev
         notification:
-          general: marketplace.notification.general
+          general: marketplace.notification.general.dev
+
       consumer:
         harvest:
           events: harvest-events
         plantation:
-          created: crop.plantation.created
-          updated: crop.plantation.updated
-          status-changed: crop.plantation.status-changed
+          created: crop.plantation.created.dev
+
+          updated: crop.plantation.updated.dev
+
+          status-changed: crop.plantation.status-changed.dev
+
         farm:
           events: farm-events
         farming-status:

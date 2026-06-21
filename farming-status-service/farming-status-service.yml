@@ -76,9 +76,12 @@ agrotech:
     consumer-topics:
       plantation-created: plantation-created.dev
       plantation-updated: plantation-updated.dev
-      plantation-status-changed: crop.plantation.status.changed
-      harvest-completed: crop.harvest.completed
-      harvest-started: crop.harvest.started
+      plantation-status-changed: crop.plantation.status.changed.dev
+
+      harvest-completed: crop.harvest.completed.dev
+
+      harvest-started: crop.harvest.started.dev
+
       growth-stage-updated: growth-stage-updated
       weather-alert: weather-alert.dev
       sensor-reading: sensor-reading.dev

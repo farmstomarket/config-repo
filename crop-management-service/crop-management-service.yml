@@ -80,8 +80,10 @@ app:
         satellite:
           images: satellite.images.processed.dev
       verification:
-        results: crop-management.verification.completed
-        failed: crop-management.verification.failed
+        results: crop-management.verification.completed.dev
+
+        failed: crop-management.verification.failed.dev
+
     dlq:
       suffix: .dlq
       retry-suffix: .retry

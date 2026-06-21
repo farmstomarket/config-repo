@@ -52,9 +52,12 @@ spring:
 app:
   kafka:
     consumer-topics:
-      plantation-created: crop.plantation.created
-      harvest-completed: crop.harvest.completed
-      imagery-requested: imagery.plantation.requested
+      plantation-created: crop.plantation.created.dev
+
+      harvest-completed: crop.harvest.completed.dev
+
+      imagery-requested: imagery.plantation.requested.dev
+
 minio:
   url: https://20.116.218.195:9000
   access-key: ${DEV_MINIO_ACCESS_KEY:dev-access-key}

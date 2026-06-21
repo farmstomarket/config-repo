@@ -4,7 +4,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/farmstomarket_auth_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/farmstomarket_auth_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -29,10 +29,14 @@ app:
   kafka:
     topics:
       auth:
-        login: auth.login.success
-        logout: auth.logout
-        token-revoked: auth.token.revoked
-        failed-attempt: auth.login.failed
+        login: auth.login.success.dev
+
+        logout: auth.logout.dev
+
+        token-revoked: auth.token.revoked.dev
+
+        failed-attempt: auth.login.failed.dev
+
     dlq:
       suffix: .dlq
       retry-suffix: .retry

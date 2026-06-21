@@ -9,7 +9,7 @@ server:
     include-binding-errors: always
 spring:
   datasource:
-    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/delivery_scheduling_db_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/delivery_scheduling_db_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -129,32 +129,15 @@ app:
   kafka:
     topics:
       delivery:
-        scheduled: delivery.delivery.scheduled.dev
-        rescheduled: delivery.delivery.rescheduled.dev
-        cancelled: delivery.delivery.cancelled.dev
-        confirmed: delivery.delivery.confirmed.dev
-        optimized: delivery.delivery.optimized.dev
-        slot:
-          created: delivery.slot.created.dev
-          updated: delivery.slot.updated.dev
-          full: delivery.slot.full.dev
-        route:
-          optimized: delivery.route.optimized.dev
-          updated: delivery.route.updated.dev
-      order:
-        confirmed: marketplace.order.confirmed.dev
-        cancelled: marketplace.order.cancelled.dev
-        updated: marketplace.order.updated.dev
-      consumer:
+        scheduled: delivery.delivery.scheduled        rescheduled: delivery.delivery.rescheduled        cancelled: delivery.delivery.cancelled        confirmed: delivery.delivery.confirmed        optimized: delivery.delivery.optimized        slot:
+          created: delivery.slot.created          updated: delivery.slot.updated          full: delivery.slot.full        route:
+          optimized: delivery.route.optimized          updated: delivery.route.updated      order:
+        confirmed: marketplace.order.confirmed        cancelled: marketplace.order.cancelled        updated: marketplace.order.updated      consumer:
         group-id: delivery-scheduling-service-dev
         transport:
-          vehicle-available: transport.vehicle.available.dev
-          driver-available: transport.driver.available.dev
-        harvest:
-          completed: crop.harvest.completed.dev
-        shipment:
-          ready: shipment.ready.pickup.dev
-  services:
+          vehicle-available: transport.vehicle.available          driver-available: transport.driver.available        harvest:
+          completed: crop.harvest.completed        shipment:
+          ready: shipment.ready.pickup  services:
     route-optimization:
       grpc:
         host: ${CONSUL_HOST:consul.synthi-ai.org}

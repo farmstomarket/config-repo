@@ -211,36 +211,56 @@ app:
   kafka:
     topics:
       notification:
-        general: notification.general
-        priority: notification.priority
-        batch: notification.batch
+        general: notification.general.dev
+
+        priority: notification.priority.dev
+
+        batch: notification.batch.dev
+
         email:
-          send: notification.email.send
-          sent: notification.email.sent
-          failed: notification.email.failed
+          send: notification.email.send.dev
+
+          sent: notification.email.sent.dev
+
+          failed: notification.email.failed.dev
+
         sms:
-          send: notification.sms.send
-          sent: notification.sms.sent
-          failed: notification.sms.failed
+          send: notification.sms.send.dev
+
+          sent: notification.sms.sent.dev
+
+          failed: notification.sms.failed.dev
+
         push:
-          send: notification.push.send
-          sent: notification.push.sent
-          failed: notification.push.failed
-        harvest: notification.harvest.events
+          send: notification.push.send.dev
+
+          sent: notification.push.sent.dev
+
+          failed: notification.push.failed.dev
+
+        harvest: notification.harvest.events.dev
+
         webhook:
-          send: notification.webhook.send
-          sent: notification.webhook.sent
-          failed: notification.webhook.failed
+          send: notification.webhook.send.dev
+
+          sent: notification.webhook.sent.dev
+
+          failed: notification.webhook.failed.dev
+
       consumer:
         order-events: marketplace.order.*
         incident-events: incident.incident.*
         delivery-events: delivery.delivery.*
         alert-events: alert.*
     consumer-topics:
-      plantation-created: crop.plantation.created
-      plantation-status-changed: crop.plantation.status.changed
-      harvest-completed: crop.harvest.completed
-      storage-alert: storage.alert.triggered
+      plantation-created: crop.plantation.created.dev
+
+      plantation-status-changed: crop.plantation.status.changed.dev
+
+      harvest-completed: crop.harvest.completed.dev
+
+      storage-alert: storage.alert.triggered.dev
+
     dlq:
       suffix: .dlq
       retry-suffix: .retry

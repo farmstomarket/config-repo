@@ -76,14 +76,18 @@ app:
       notifications: notification-events
       consumer:
         plantation:
-          created: crop.plantation.created
-          updated: crop.plantation.updated
-          status-changed: crop.plantation.status.changed
+          created: crop.plantation.created.dev
+
+          updated: crop.plantation.updated.dev
+
+          status-changed: crop.plantation.status.changed.dev
+
           events: crop.plantation.status.changed.dev
         weather:
           events: weather.alert.triggered.dev
         farming-status:
-          events: farming.status.updated
+          events: farming.status.updated.dev
+
     dlq:
       suffix: .dlq
       retry-suffix: .retry

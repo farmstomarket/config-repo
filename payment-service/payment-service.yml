@@ -6,7 +6,7 @@ spring:
   application:
     name: payment-service
   datasource:
-    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/farmstomarket_payments_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/farmstomarket_payments_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -210,17 +210,27 @@ app:
   kafka:
     topics:
       payment:
-        initiated: payment.payment.initiated
-        authorized: payment.payment.authorized
-        captured: payment.payment.captured
-        completed: payment.payment.completed
-        failed: payment.payment.failed
-        refunded: payment.payment.refunded
-        cancelled: payment.payment.cancelled
+        initiated: payment.payment.initiated.dev
+
+        authorized: payment.payment.authorized.dev
+
+        captured: payment.payment.captured.dev
+
+        completed: payment.payment.completed.dev
+
+        failed: payment.payment.failed.dev
+
+        refunded: payment.payment.refunded.dev
+
+        cancelled: payment.payment.cancelled.dev
+
       transaction:
-        recorded: payment.transaction.recorded
-        disputed: payment.transaction.disputed
-        settled: payment.transaction.settled
+        recorded: payment.transaction.recorded.dev
+
+        disputed: payment.transaction.disputed.dev
+
+        settled: payment.transaction.settled.dev
+
       consumer:
         orders: marketplace.order.*
         refunds: marketplace.refund.*

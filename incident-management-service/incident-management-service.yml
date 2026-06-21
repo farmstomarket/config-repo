@@ -61,17 +61,27 @@ grpc:
       port: 9082
   topics:
     incident:
-      created: incident.created
-      updated: incident.updated
-      resolved: incident.resolved
-      assigned: incident.assigned
-      closed: incident.closed
-      escalated: incident.escalated
+      created: incident.created.dev
+
+      updated: incident.updated.dev
+
+      resolved: incident.resolved.dev
+
+      assigned: incident.assigned.dev
+
+      closed: incident.closed.dev
+
+      escalated: incident.escalated.dev
+
     event:
-      vehicle-breakdown: incident.vehicle.breakdown
-      delay-reported: incident.delay.reported
-      road-closure: incident.road.closure
-      weather: incident.weather
+      vehicle-breakdown: incident.vehicle.breakdown.dev
+
+      delay-reported: incident.delay.reported.dev
+
+      road-closure: incident.road.closure.dev
+
+      weather: incident.weather.dev
+
 integration:
   weather-api:
     url: https://api.weather.com
@@ -102,16 +112,7 @@ resilience4j:
         waitDuration: 1s
 kafka:
   topics:
-    incident-created: incident.created.dev
-    incident-updated: incident.updated.dev
-    incident-resolved: incident.resolved.dev
-    incident-assigned: incident.assigned.dev
-    incident-closed: incident.closed.dev
-    incident-vehicle-breakdown: incident.vehicle.breakdown.dev
-    incident-delay-reported: incident.delay.reported.dev
-    incident-road-closure: incident.road.closure.dev
-    incident-weather: incident.weather.dev
-management:
+    incident-created: incident.created    incident-updated: incident.updated    incident-resolved: incident.resolved    incident-assigned: incident.assigned    incident-closed: incident.closed    incident-vehicle-breakdown: incident.vehicle.breakdown    incident-delay-reported: incident.delay.reported    incident-road-closure: incident.road.closure    incident-weather: incident.weathermanagement:
   endpoint:
     health:
       show-details: always

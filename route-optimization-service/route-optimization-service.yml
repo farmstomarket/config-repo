@@ -6,7 +6,7 @@ spring:
   application:
     name: route-optimization-service
   datasource:
-    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/route_optimization_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/route_optimization_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -119,7 +119,14 @@ grpc:
       address: static://20.116.218.195:9093
       negotiation-type: plaintext
 app:
-  logging:
+  outbox:
+    relay:
+      fixed-delay-ms: 5000
+  kafka:
+    topics:
+      route-optimization-completed: route.optimization.completed      route-optimization-failed: route.optimization.failed      route-assigned: route.assigned      route-status-changed: route.status_changed      routes-reoptimized: route.reoptimized      route-created: route.created      route-updated: route.updated      route-deleted: route.deleted      waypoint-status-changed: route.waypoint.status_changed      route-performance-alert: route.performance.alert    consumer:
+      topics:
+        delivery-assigned: delivery.assigned        vehicle-allocated: transport.vehicle.allocated  logging:
     enabled: true
     max-file-size: 5MB
     max-history: 3

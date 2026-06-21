@@ -87,22 +87,9 @@ resilience4j:
         maxRetryAttempts: 3
 kafka:
   topics:
-    vehicle-created: transport.vehicle_created.dev
-    vehicle-updated: transport.vehicle_updated.dev
-    vehicle-status-changed: transport.vehicle_status_changed.dev
-    vehicle-location-updated: transport.vehicle_location_updated.dev
-    vehicle-maintenance-needed: transport.vehicle_maintenance_needed.dev
-    vehicle-assigned: transport.vehicle_assigned.dev
-    vehicle-available: transport.vehicle.available.dev
-    vehicle-breakdown: transport.vehicle.breakdown.dev
-  consumer:
+    vehicle-created: transport.vehicle_created    vehicle-updated: transport.vehicle_updated    vehicle-status-changed: transport.vehicle_status_changed    vehicle-location-updated: transport.vehicle_location_updated    vehicle-maintenance-needed: transport.vehicle_maintenance_needed    vehicle-assigned: transport.vehicle_assigned    vehicle-available: transport.vehicle.available    vehicle-breakdown: transport.vehicle.breakdown  consumer:
     topics:
-      driver-assigned: driver.assigned.dev
-      driver-available: driver.available.dev
-      logistics-vehicle-needed: logistics.vehicle_needed.dev
-      incident-vehicle-breakdown: incident.vehicle_breakdown.dev
-      delivery-completed: logistics.delivery.completed.dev
-app:
+      driver-assigned: driver.assigned      driver-available: driver.available      logistics-vehicle-needed: logistics.vehicle_needed      incident-vehicle-breakdown: incident.vehicle_breakdown      delivery-completed: logistics.delivery.completedapp:
   outbox:
     relay:
       fixed-delay-ms: 5000

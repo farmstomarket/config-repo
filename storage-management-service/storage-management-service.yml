@@ -99,12 +99,17 @@ server:
 app:
   kafka:
     topic:
-      lot-created: lot.created
-      lot-exited: lot.exited
-      alert-triggered: alert.triggered
-      reservation-accepted: reservation.accepted
+      lot-created: lot.created.dev
+
+      lot-exited: lot.exited.dev
+
+      alert-triggered: alert.triggered.dev
+
+      reservation-accepted: reservation.accepted.dev
+
     consumer-topics:
-      harvest-completed: crop.harvest.completed
+      harvest-completed: crop.harvest.completed.dev
+
     topics:
       storage:
         warehouse:

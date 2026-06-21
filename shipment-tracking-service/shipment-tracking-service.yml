@@ -25,7 +25,7 @@ spring:
       time-to-live: 3600000
       cache-null-values: false
   datasource:
-    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/timescaledb_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5000}/timescaledb_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -146,23 +146,39 @@ resilience4j:
 kafka:
   topics:
     shipment-created: shipment.created.dev
-    shipment-location-updated: shipment.location_updated.dev
-    shipment-status-updated: shipment.status_updated.dev
+
+    shipment-location-updated: shipment.location_updated
+    shipment-status-updated: shipment.status_updated
     shipment-delivered: shipment.delivered.dev
+
     shipment-delayed: shipment.delayed.dev
+
     shipment-incident: shipment.incident.dev
-    shipment-tracking-events: shipment-tracking-events
-    route-optimization-events: route-optimization-events
-    notification-events: notification-events
-    driver-management-events: driver-management-events
-    transport-management-events: transport-management-events
+
+    shipment-tracking-events: shipment.tracking.events.dev
+
+    route-optimization-events: route.optimization.events.dev
+
+    notification-events: notification.events.dev
+
+    driver-management-events: driver.management.events.dev
+
+    transport-management-events: transport.management.events.dev
+
   consumer:
     topics:
-      transport-location-updated: transport.vehicle_location_updated.dev
-      transport-status-changed: transport.vehicle_status_changed.dev
+      transport-location-updated: transport.vehicle_location_updated
+      transport-status-changed: transport.vehicle_status_changed
       delivery-assigned: delivery.assigned.dev
+
       delivery-completed: delivery.completed.dev
+
       incident-reported: incident.reported.dev
+
+app:
+  outbox:
+    relay:
+      fixed-delay-ms: 5000
 grpc:
   server:
     port: 9093
