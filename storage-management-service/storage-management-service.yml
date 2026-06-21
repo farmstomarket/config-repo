@@ -1,8 +1,4 @@
-server:
-  port: 9030
 spring:
-  application:
-    name: storage-management-service
   data:
     mongodb:
       uri: ${MONGODB_URI}
@@ -11,7 +7,35 @@ spring:
       host: ${REDIS_HOST}
       port: 6379
       timeout: 300000
+      connect-timeout: 2000
+      repositories:
+        enabled: false
       password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600
+      cache-null-values: false
+  kafka:
+    consumer:
+      group-id: storage-management-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    listener:
+      concurrency: 3
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: storage-management-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -28,22 +52,6 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: storage-management-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 3
   task:
     execution:
       pool:
@@ -54,10 +62,30 @@ spring:
     scheduling:
       pool:
         size: 10
+server:
+  port: 9030
+  servlet:
+    context-path: /api/v1
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: 1024
 app:
   kafka:
+    topic:
+      lot-created: lot.created
+      lot-exited: lot.exited
+      alert-triggered: alert.triggered
+      reservation-accepted: reservation.accepted
+    consumer-topics:
+      harvest-completed: crop.harvest.completed
     topics:
       storage:
+        warehouse:
+          capacity:
+            warning: warehouse.capacity.warning
+          status:
+            changed: warehouse.status.changed
         facility:
           created: storage.facility.created
           updated: storage.facility.updated
@@ -88,9 +116,56 @@ app:
         marketplace-events: marketplace.order.*
     dlq:
       suffix: .dlq
-      retry-suffix: .retry
       max-retries: 3
+      retry-suffix: .retry
       retry-delay: 5000
+  webhook:
+    svix:
+      api-key: ${SVIX_API_KEY}
+      endpoint: ${SVIX_ENDPOINT:https://webhooks.synthi-ai.org}
+      app-id: ${SVIX_APP_ID:app_1234567890}
+    events: lot.created,warehouse.near-full,lot.expired,reservation.created,warehouse.updated,warehouse.deleted,warehouse.status-changed,alert.triggered
+  services:
+    notification: ${NOTIFICATION_SERVICE_URL:http://notification-service/api/v1}
+    harvest: ${HARVEST_SERVICE_URL:http://harvest-management-service/api/v1}
+    crop: ${CROP_SERVICE_URL:http://crop-management-service/api/v1}
+  business:
+    warehouse:
+      capacity:
+        warning-threshold: ${WAREHOUSE_WARNING_THRESHOLD:0.85}
+        critical-threshold: ${WAREHOUSE_CRITICAL_THRESHOLD:0.95}
+        info-threshold: ${WAREHOUSE_INFO_THRESHOLD:0.80}
+    alert:
+      thresholds:
+        capacity:
+          info: ${ALERT_CAPACITY_INFO:80.0}
+          warning: ${ALERT_CAPACITY_WARNING:90.0}
+          critical: ${ALERT_CAPACITY_CRITICAL:95.0}
+        environmental:
+          deviation:
+            warning: ${ALERT_ENV_WARNING:10.0}
+            critical: ${ALERT_ENV_CRITICAL:20.0}
+      escalation:
+        hours-threshold: ${ALERT_ESCALATION_HOURS:24}
+      upcoming-exit:
+        days-threshold: ${UPCOMING_EXIT_DAYS:5}
+        notification-threshold: ${UPCOMING_EXIT_NOTIFICATION_DAYS:2}
+    auto:
+      store:
+        enabled: ${AUTO_STORE_ENABLED:false}
+        default-storage-months: ${DEFAULT_STORAGE_MONTHS:3}
+  security:
+    allowed-origins: ${ALLOWED_ORIGINS:*}
+    required-scopes:
+      warehouse:
+        read: warehouse.read
+        write: warehouse.write
+      lot:
+        read: lot.read
+        write: lot.manage
+      reservation:
+        read: reservation.read
+        write: reservation.create
 storage:
   facilities:
     default-capacity-kg: 10000

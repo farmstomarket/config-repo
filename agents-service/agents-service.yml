@@ -1,15 +1,6 @@
 server:
   port: 9001
 spring:
-  application:
-    name: agents-service
-  cache:
-    type: redis
-    cache-names:
-    - buckets
-  data:
-    redis:
-      timeout: 300000
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/farmstomarket_agents
     username: ${DB_USERNAME}
@@ -21,9 +12,10 @@ spring:
       connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 600000
-      leak-detection-threshold: 60000
+      keepalive-time: 30000
       validation-timeout: 5000
       connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -39,6 +31,52 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  cache:
+    type: redis
+    cache-names:
+    - buckets
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      repositories:
+        enabled: false
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 50MB
+      enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://oauth2-server.synthi-ai.com
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - 976095ed-0368-4774-a383-eeef34901da7
+      client:
+        registration:
+          fusionauth:
+            client-id: ${FUSIONAUTH_CLIENT_ID}
+            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+            - openid
+            - email
+            - profile
+            - phone
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+        provider:
+          fusionauth:
+            issuer-uri: ${FUSIONAUTH_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+            authorization-uri: https://oauth2-server.synthi-ai.com/oauth2/authorize
+            token-uri: https://oauth2-server.synthi-ai.com/oauth2/token
+            user-info-uri: https://oauth2-server.synthi-ai.com/oauth2/userinfo
+            jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+            user-name-attribute: phone
+  application:
+    name: agents-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -56,42 +94,9 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 50MB
-      enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://oauth2-server.synthi-ai.com
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-          audiences:
-          - 976095ed-0368-4774-a383-eeef34901da7
-      client:
-        registration:
-          fusionauth:
-            client-id: ${FUSIONAUTH_CLIENT_ID:976095ed-0368-4774-a383-eeef34901da7}
-            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
-            authorization-grant-type: authorization_code
-            scope:
-            - openid
-            - email
-            - profile
-            - phone
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
-        provider:
-          fusionauth:
-            issuer-uri: ${FUSIONAUTH_ISSUER_URI:https://oauth2-server.synthi-ai.com}
-            authorization-uri: https://oauth2-server.synthi-ai.com/oauth2/authorize
-            token-uri: https://oauth2-server.synthi-ai.com/oauth2/token
-            user-info-uri: https://oauth2-server.synthi-ai.com/oauth2/userinfo
-            jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-            user-name-attribute: phone
 fusionauth:
   apiKey: ${FUSIONAUTH_API_KEY}
-  applicationId: ${FUSIONAUTH_APP_ID:976095ed-0368-4774-a383-eeef34901da7}
+  applicationId: ${FUSIONAUTH_APP_ID}
   baseUrl: https://oauth2-server.synthi-ai.com
 twilio:
   account-sid: ${TWILIO_ACCOUNT_SID}
@@ -111,12 +116,25 @@ bucket4j:
         unit: minutes
       cache-key: getHost()
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:8080}
   allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
   allowed-headers: ${CORS_ALLOWED_HEADERS:*}
   exposed-headers: ${CORS_EXPOSED_HEADERS:*}
   allow-credentials: true
   max-age: 3600
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
 management:
   endpoint:
     health:
@@ -135,18 +153,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 5s
 logging:
   level:
     root: WARN

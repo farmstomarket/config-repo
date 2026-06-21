@@ -4,17 +4,45 @@ server:
     include-message: always
     include-binding-errors: always
 spring:
-  application:
-    name: farming-status-service
   data:
     mongodb:
-      uri: ${MONGODB_URI}
       auto-index-creation: true
+      uri: ${MONGODB_URI}
     redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:7001,20.116.218.195:7002,20.116.218.195:7003}
+      password: ${REDIS_PASSWORD}
+      timeout: 300000
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000}
+      repositories:
+        enabled: false
       host: ${REDIS_HOST}
       port: 6379
-      timeout: 300000
-      password: ${REDIS_PASSWORD}
+  kafka:
+    consumer:
+      group-id: farming-status-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      ack-mode: manual
+      concurrency: 3
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  web:
+    error:
+      include-binding-errors: always
+      include-message: always
+  mongodb:
+    uri: ${MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/farming_status_db?appName=Cluster0}
+  application:
+    name: farming-status-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -31,22 +59,6 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: farming-status-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 3
   task:
     execution:
       pool:
@@ -54,6 +66,61 @@ spring:
         max-size: 20
         queue-capacity: 100
         keep-alive: 60s
+agrotech:
+  kafka:
+    topics:
+      status-created: farming-status-created
+      status-updated: farming-status-updated
+      status-critical: farming-status-critical
+      event-created: farming-event-created
+      event-resolved: farming-event-resolved
+      alert-triggered: farming-alert-triggered
+      alert-acknowledged: farming-alert-acknowledged
+      alert-resolved: farming-alert-resolved
+      prediction-generated: farming-prediction-generated
+      crop-health-changed: crop-health-changed
+      growth-stage-updated: growth-stage-updated
+      farming-recommendation: farming-recommendation
+    consumer-topics:
+      plantation-created: crop.plantation.created
+      plantation-updated: crop.plantation.updated
+      plantation-status-changed: crop.plantation.status.changed
+      harvest-completed: crop.harvest.completed
+      harvest-started: crop.harvest.started
+      growth-stage-updated: growth-stage-updated
+      weather-alert: weather.alert.triggered
+      sensor-reading: sensor-reading
+  cache:
+    time-to-live: 3600
+    redis:
+      default-ttl: 3600
+      alert-ttl: 300
+      status-ttl: 1800
+      event-ttl: 900
+      prediction-ttl: 7200
+  security:
+    allowed-origins: ${ALLOWED_ORIGINS:http://20.116.218.195:3000,http://20.116.218.195:8080,https://farming-app.com}
+    jwt:
+      cache-duration: 300
+  monitoring:
+    metrics:
+      enabled: true
+      detailed: ${DETAILED_METRICS:false}
+    health:
+      checks:
+        redis: true
+        kafka: true
+        database: true
+  business:
+    alerts:
+      max-active-per-plantation: 50
+      auto-resolve-after-days: 30
+    events:
+      max-history-days: 365
+      cleanup-batch-size: 1000
+    predictions:
+      cache-duration-hours: 24
+      max-predictions-per-plantation: 10
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
   allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}

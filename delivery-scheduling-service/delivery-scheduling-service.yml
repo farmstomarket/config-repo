@@ -8,24 +8,6 @@ server:
     include-message: always
     include-binding-errors: always
 spring:
-  application:
-    name: delivery-scheduling-service
-  cloud:
-    consul:
-      host: consul.synthi-ai.org
-      port: 443
-      scheme: https
-      enabled: true
-      discovery:
-        enabled: true
-        register: true
-        service-id: delivery-scheduling-service
-        instance-id: delivery-scheduling-service
-        health-check-interval: 10s
-        tags:
-        - version=1.0
-        - environment=production
-        - secure=true
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/delivery_scheduling_db
     username: ${DB_USERNAME}
@@ -58,25 +40,23 @@ spring:
             factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      timeout: 300000
+      cluster:
+        nodes:
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_1:7001}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_2:7002}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_3:7003}
       password: ${REDIS_PASSWORD}
+      timeout: 300000
+      connect-timeout: 2000
       lettuce:
         pool:
           max-active: 20
           max-wait: -1ms
           max-idle: 10
           min-idle: 5
+      host: ${REDIS_HOST}
+      port: 6379
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties:
-        retry.backoff.ms: 1000
-        batch.size: 16384
-        linger.ms: 5
-        buffer.memory: 33554432
-        enable.idempotence: true
     consumer:
       group-id: delivery-scheduling-group
       properties:
@@ -85,12 +65,22 @@ spring:
         fetch.min.bytes: 1
     listener:
       concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties:
+        retry.backoff.ms: 1000
+        batch.size: 16384
+        linger.ms: 5
+        buffer.memory: 33554432
+        enable.idempotence: true
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
           jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
   task:
     execution:
       pool:
@@ -101,6 +91,24 @@ spring:
     scheduling:
       pool:
         size: 10
+  application:
+    name: delivery-scheduling-service
+  cloud:
+    consul:
+      host: consul.synthi-ai.org
+      port: 443
+      scheme: https
+      enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-id: delivery-scheduling-service
+        instance-id: delivery-scheduling-service
+        health-check-interval: 10s
+        tags:
+        - version=1.0
+        - environment=production
+        - secure=true
 delivery:
   scheduling:
     time-slots:
@@ -177,38 +185,6 @@ grpc:
       negotiation-type: plaintext
       max-inbound-message-size: 4MB
       max-inbound-metadata-size: 8KB
-cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
-  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
-  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
-  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
-  allow-credentials: true
-  max-age: 3600
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics,scheduledtasks
-  endpoint:
-    health:
-      show-details: when-authorized
-      probes:
-        enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-  tracing:
-    sampling:
-      probability: 0.1
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      environment: production
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-      sla:
-        http.server.requests: 50ms, 100ms, 200ms, 500ms
 resilience4j:
   circuitbreaker:
     instances:
@@ -243,6 +219,38 @@ resilience4j:
         retryExceptions:
         - java.io.IOException
         - java.net.ConnectException
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+  allow-credentials: true
+  max-age: 3600
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,scheduledtasks
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 0.1
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms
 logging:
   level:
     root: WARN

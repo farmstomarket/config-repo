@@ -1,18 +1,86 @@
 server:
   port: 9026
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_MAX_THREADS:200}
+      min-spare: ${SERVER_TOMCAT_MIN_SPARE_THREADS:10}
+    max-connections: ${SERVER_TOMCAT_MAX_CONNECTIONS:8192}
+    connection-timeout: ${SERVER_TOMCAT_CONNECTION_TIMEOUT:20000}
+    max-http-form-post-size: ${SERVER_TOMCAT_MAX_POST_SIZE:2MB}
 spring:
-  application:
-    name: referral-service
+  datasource:
+    url: ${DB_URL}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: ReferralServiceHikariCP
+      maximum-pool-size: ${DATABASE_MAX_POOL_SIZE:20}
+      minimum-idle: ${DATABASE_MIN_IDLE:5}
+      idle-timeout: ${DATABASE_IDLE_TIMEOUT:300000}
+      max-lifetime: ${DATABASE_MAX_LIFETIME:1200000}
+      connection-timeout: ${DATABASE_CONNECTION_TIMEOUT:20000}
+      leak-detection-threshold: ${DATABASE_LEAK_DETECTION:30000}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: ${JPA_FORMAT_SQL:false}
+        jdbc:
+          batch_size: 25
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        connection:
+          provider_disables_autocommit: false
+        hbm2ddl:
+          create_namespaces: false
+        temp:
+          use_jdbc_metadata_defaults: false
+        schema_update:
+          unique_constraint_strategy: RECREATE_QUIETLY
+    show-sql: ${JPA_SHOW_SQL:false}
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE:0}
+      timeout: 300000
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:20}
+          max-idle: ${REDIS_POOL_MAX_IDLE:10}
+          min-idle: ${REDIS_POOL_MIN_IDLE:2}
+          max-wait: ${REDIS_POOL_MAX_WAIT:5000ms}
+        shutdown-timeout: 100ms
     mongodb:
       uri: ${MONGODB_URI}
       auto-index-creation: true
-    redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      timeout: 300000
-      password: ${REDIS_PASSWORD}
   cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: ${FEIGN_CONNECT_TIMEOUT:5000}
+            read-timeout: ${FEIGN_READ_TIMEOUT:10000}
+            logger-level: ${FEIGN_LOG_LEVEL:BASIC}
+          agents-service:
+            connect-timeout: ${FEIGN_AGENTS_CONNECT_TIMEOUT:3000}
+            read-timeout: ${FEIGN_AGENTS_READ_TIMEOUT:8000}
+            logger-level: ${FEIGN_AGENTS_LOG_LEVEL:FULL}
     consul:
       host: consul.synthi-ai.org
       port: 443
@@ -28,12 +96,21 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:3600000}
+      cache-null-values: false
+      key-prefix: '${spring.application.name}:'
+      use-key-prefix: true
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
           jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+  application:
+    name: referral-service
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     producer:
@@ -51,6 +128,68 @@ spring:
         max-size: 20
         queue-capacity: 100
         keep-alive: 60s
+kafka:
+  topics:
+    referral-code-created: ${KAFKA_TOPIC_REFERRAL_CODE_CREATED:referral.code.created}
+    referral-code-expired: ${KAFKA_TOPIC_REFERRAL_CODE_EXPIRED:referral.code.expired}
+    referral-created: ${KAFKA_TOPIC_REFERRAL_CREATED:referral.created}
+    referral-converted: ${KAFKA_TOPIC_REFERRAL_CONVERTED:referral.converted}
+    reward-earned: ${KAFKA_TOPIC_REWARD_EARNED:reward.earned}
+    reward-redeemed: ${KAFKA_TOPIC_REWARD_REDEEMED:reward.redeemed}
+    transaction-processed: ${KAFKA_TOPIC_TRANSACTION_PROCESSED:transaction.processed}
+    admin-alerts: ${KAFKA_TOPIC_ADMIN_ALERTS:admin.alerts}
+services:
+  agents-service:
+    url: ${AGENTS_SERVICE_URL:http://20.116.218.195:8081}
+    timeout: ${AGENTS_SERVICE_TIMEOUT:10000}
+    retry:
+      max-attempts: ${AGENTS_SERVICE_RETRY_MAX:3}
+      delay: ${AGENTS_SERVICE_RETRY_DELAY:1000}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://20.116.218.195:8082}
+    timeout: ${NOTIFICATION_SERVICE_TIMEOUT:15000}
+    retry:
+      max-attempts: ${NOTIFICATION_SERVICE_RETRY_MAX:3}
+      delay: ${NOTIFICATION_SERVICE_RETRY_DELAY:2000}
+business:
+  referral:
+    code:
+      length: ${REFERRAL_CODE_LENGTH:8}
+      expiry-days: ${REFERRAL_CODE_EXPIRY_DAYS:365}
+      max-uses: ${REFERRAL_CODE_MAX_USES:1000}
+    reward:
+      min-purchase-amount: ${REFERRAL_MIN_PURCHASE_AMOUNT:50.00}
+      default-reward-percentage: ${REFERRAL_DEFAULT_REWARD_PERCENTAGE:0.05}
+      max-reward-amount: ${REFERRAL_MAX_REWARD_AMOUNT:500.00}
+    validation:
+      agent-cache-ttl: ${AGENT_VALIDATION_CACHE_TTL:1800000}
+      max-validation-retries: ${AGENT_VALIDATION_MAX_RETRIES:3}
+    expiration:
+      warning-days: ${REFERRAL_EXPIRATION_WARNING_DAYS:7,1}
+      batch-size: ${REFERRAL_EXPIRATION_BATCH_SIZE:50}
+      max-processing-time: ${REFERRAL_EXPIRATION_MAX_PROCESSING_TIME:300000}
+      cron: ${REFERRAL_EXPIRATION_CRON:0 0 * * * ?}
+      warning-cron: ${REFERRAL_EXPIRATION_WARNING_CRON:0 0 */6 * * ?}
+      cleanup-cron: ${REFERRAL_EXPIRATION_CLEANUP_CRON:0 0 2 * * ?}
+  bonus:
+    base-amount: ${BONUS_BASE_AMOUNT:10.00}
+    performance-threshold: ${BONUS_PERFORMANCE_THRESHOLD:10}
+    loyalty-days-threshold: ${BONUS_LOYALTY_DAYS_THRESHOLD:90}
+    milestone-increments: ${BONUS_MILESTONE_INCREMENTS:5}
+  fraud:
+    risk-threshold: ${FRAUD_RISK_THRESHOLD:70}
+    max-referrals-per-day: ${FRAUD_MAX_REFERRALS_PER_DAY:10}
+    self-referral-score: ${FRAUD_SELF_REFERRAL_SCORE:100}
+    velocity-score: ${FRAUD_VELOCITY_SCORE:30}
+    same-ip-score: ${FRAUD_SAME_IP_SCORE:40}
+sentry:
+  dsn: ${SENTRY_DSN:}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  environment: ${spring.profiles.active}
+  release: ${project.version:1.0.0}
+  send-default-pii: false
+  attach-stacktrace: true
+  debug: ${SENTRY_DEBUG:false}
 app:
   kafka:
     topics:

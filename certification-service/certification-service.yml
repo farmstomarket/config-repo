@@ -1,13 +1,49 @@
 server:
   port: 9004
 spring:
-  application:
-    name: certification-service
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/certification_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+    redis:
+      host: 37.60.239.221
+      port: 6379
+      timeout: 300000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+  kafka:
+    consumer:
+      group-id: certification-service-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+  application:
+    name: certification-service
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -38,28 +74,18 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: certification-service-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 3
-  task:
-    execution:
-      pool:
-        core-size: 10
-        max-size: 20
-        queue-capacity: 100
-        keep-alive: 60s
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
 management:
   endpoint:
     health:
@@ -78,18 +104,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 5s
 logging:
   level:
     root: WARN

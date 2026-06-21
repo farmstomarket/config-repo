@@ -1,9 +1,24 @@
 server:
   port: 9028
 spring:
-  application:
-    name: search-engine-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   data:
+    mongodb:
+      uri: mongodb://20.116.218.195:27017/farmstomarket_db?replicaSet=rs0
+      database: farmstomarket_db
+      auto-index-creation: true
+    redis:
+      cluster:
+        nodes:
+        - 20.116.218.195:7001
+        - 20.116.218.195:7002
+        - 20.116.218.195:7003
+      password: ${REDIS_PASSWORD}
+      timeout: 300000
+      connect-timeout: 2000
+      host: ${REDIS_HOST}
+      port: 6379
     elasticsearch:
       rest:
         uris: ${ELASTICSEARCH_URI}
@@ -11,11 +26,25 @@ spring:
         password: ${ELASTICSEARCH_PASSWORD}
         connection-timeout: 30s
         read-timeout: 30s
-    redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      timeout: 300000
-      password: ${REDIS_PASSWORD}
+  kafka:
+    consumer:
+      group-id: search-engine-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 5
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  application:
+    name: search-engine-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -32,22 +61,6 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: search-engine-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 5
   task:
     execution:
       pool:
@@ -56,6 +69,41 @@ spring:
         queue-capacity: 200
         keep-alive: 60s
 app:
+  search:
+    meilisearch:
+      url: ${MEILISEARCH_URL:http://37.60.239.221:7700}
+      apiKey: ${MEILISEARCH_API_KEY:MASTER_KEY}
+    milvus:
+      enabled: ${MILVUS_ENABLED:true}
+      host: ${MILVUS_HOST:https://in03-f5b3b554df44d7e.serverless.aws-eu-central-1.cloud.zilliz.com}
+      port: ${MILVUS_PORT:19530}
+      username: ${MILVUS_USERNAME:db_f5b3b554df44d7e}
+      password: ${MILVUS_PASSWORD:By9+6aGylDBvWHw7}
+    hybrid:
+      text-weight: 0.7
+      vector-weight: 0.3
+      top-k: 100
+      vector-dimension: 384
+    discovery:
+      excluded-collections:
+      - system.indexes
+      - system.users
+      - fs.files
+      - fs.chunks
+      auto-refresh: true
+      refresh-interval: 300000
+    indexing:
+      batch-size: 1000
+      parallel-threads: 4
+      auto-create-indices: true
+    sync:
+      auto-start: true
+      retry-delay: 5000
+      enable-global-watch: true
+    initialization:
+      auto-create: true
+  cache:
+    ttl: 300
   kafka:
     topics:
       search:

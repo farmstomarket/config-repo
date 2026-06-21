@@ -1,17 +1,53 @@
 server:
   port: 9021
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
 spring:
-  application:
-    name: media-storage-service
   data:
     mongodb:
       uri: ${MONGODB_URI}
       auto-index-creation: true
     redis:
+      cluster:
+        nodes:
+        - ${REDIS_NODE_1:20.116.218.195:7001}
+        - ${REDIS_NODE_2:20.116.218.195:7002}
+        - ${REDIS_NODE_3:20.116.218.195:7003}
+      password: ${REDIS_PASSWORD}
+      timeout: 300000
+      connect-timeout: 2000
+      lettuce:
+        pool:
+          max-active: 10
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 2
       host: ${REDIS_HOST}
       port: 6379
-      timeout: 300000
-      password: ${REDIS_PASSWORD}
+  kafka:
+    consumer:
+      group-id: media-storage-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+    listener:
+      concurrency: 3
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  application:
+    name: media-storage-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -28,27 +64,6 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
-      enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: media-storage-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 3
   task:
     execution:
       pool:
@@ -56,9 +71,121 @@ spring:
         max-size: 30
         queue-capacity: 200
         keep-alive: 60s
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://20.116.218.195:9000}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket:
+    name: ${MINIO_BUCKET:media-files}
+    auto-create: true
+  url: ${MINIO_URL}
+  buckets:
+    images: ${MINIO_BUCKET_IMAGES:farm-images}
+    documents: ${MINIO_BUCKET_DOCUMENTS:farm-documents}
+    videos: ${MINIO_BUCKET_VIDEOS:farm-videos}
+    thumbnails: ${MINIO_BUCKET_THUMBNAILS:thumbnails}
+media:
+  processing:
+    max-concurrent-jobs: ${MAX_CONCURRENT_JOBS:5}
+    ffmpeg:
+      executable-path: ${FFMPEG_PATH:ffmpeg}
+      timeout-seconds: 300
+      temp-directory: ${TEMP_DIR:/tmp/media-processing}
+    thumbnail:
+      max-width: 300
+      max-height: 300
+      quality: 0.8
+    video:
+      max-duration-seconds: 3600
+      supported-formats:
+      - mp4
+      - avi
+      - mov
+      - wmv
+      - mkv
+      - flv
+      - webm
+      output-format: mp4
+      codec: h264
+      bitrate: 1000k
+      resolutions:
+      - 240
+      - 360
+      - 480
+      - 720
+      - 1080
+      frame-rate: 30
+      max-size-mb: 500
+      formats:
+      - MP4
+      - MOV
+      - AVI
+      compression:
+        enabled: true
+        bitrate: 1000k
+    audio:
+      supported-formats:
+      - mp3
+      - wav
+      - aac
+      - ogg
+      - m4a
+      - flac
+      output-format: mp3
+      bitrate: 128k
+      sample-rate: 44100
+    image:
+      max-resolution: 4096x4096
+      supported-formats:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      - bmp
+      - tiff
+      output-format: jpg
+      quality: 85
+      max-width: 2048
+      max-height: 2048
+      formats:
+      - JPEG
+      - PNG
+      - WEBP
+      thumbnail:
+        width: 200
+        height: 200
+    document:
+      max-size-mb: 50
+      supported-formats:
+      - pdf
+      - doc
+      - docx
+      - txt
+      - rtf
+    virus-scan:
+      enabled: true
+      timeout-seconds: 30
+  storage:
+    base-url: ${MEDIA_BASE_URL:http://localhost:9016}
+    quotas:
+      default-user-quota-gb: 5
+      premium-user-quota-gb: 50
+    cleanup:
+      temp-files-retention-hours: 24
+      deleted-files-retention-days: 30
+  cdn:
+    base-url: ${CDN_BASE_URL:https://cdn.farmstomarket.io}
+    cache-ttl: 86400
 app:
   kafka:
+    consumer-topics:
+      imagery-processed: imagery.plantation.processed
     topics:
+      media-uploaded: media.file.uploaded
+      media-processing: media.file.processing
+      media-accessed: media.file.accessed
+      media-deleted: media.file.deleted
       media:
         uploaded: media.file.uploaded
         processed: media.file.processed
@@ -74,43 +201,49 @@ app:
       retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
-minio:
-  url: ${MINIO_URL}
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
-  buckets:
-    images: ${MINIO_BUCKET_IMAGES:farm-images}
-    documents: ${MINIO_BUCKET_DOCUMENTS:farm-documents}
-    videos: ${MINIO_BUCKET_VIDEOS:farm-videos}
-    thumbnails: ${MINIO_BUCKET_THUMBNAILS:thumbnails}
-media:
-  processing:
-    image:
-      max-width: 2048
-      max-height: 2048
-      quality: 85
-      formats:
-      - JPEG
-      - PNG
-      - WEBP
-      thumbnail:
-        width: 200
-        height: 200
-    video:
-      max-size-mb: 500
-      formats:
-      - MP4
-      - MOV
-      - AVI
-      compression:
-        enabled: true
-        bitrate: 1000k
-    virus-scan:
-      enabled: true
-      timeout-seconds: 30
-  cdn:
-    base-url: ${CDN_BASE_URL:https://cdn.farmstomarket.io}
-    cache-ttl: 86400
+resilience4j:
+  circuitbreaker:
+    instances:
+      minio:
+        register-health-indicator: true
+        sliding-window-size: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: count_based
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      mongodb:
+        register-health-indicator: true
+        sliding-window-size: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: count_based
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      minioStorage:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+      virusScanner:
+        slidingWindowSize: 50
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 30
+        waitDurationInOpenState: 60s
+  retry:
+    instances:
+      minio:
+        max-attempts: 3
+        wait-duration: 1s
+      mongodb:
+        max-attempts: 3
+        wait-duration: 500ms
+  timelimiter:
+    instances:
+      minioStorage:
+        timeoutDuration: 60s
+      virusScanner:
+        timeoutDuration: 30s
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
   allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
@@ -136,25 +269,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms, 2000ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      minioStorage:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 30s
-      virusScanner:
-        slidingWindowSize: 50
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 30
-        waitDurationInOpenState: 60s
-  timelimiter:
-    instances:
-      minioStorage:
-        timeoutDuration: 60s
-      virusScanner:
-        timeoutDuration: 30s
 logging:
   level:
     root: WARN

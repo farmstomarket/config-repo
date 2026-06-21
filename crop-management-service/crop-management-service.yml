@@ -1,17 +1,50 @@
 server:
   port: 9011
 spring:
-  application:
-    name: crop-management-service
   data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:6379}
+      password: ${REDIS_PASSWORD}
+      timeout: 300000
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000}
+      repositories:
+        enabled: false
+      host: ${REDIS_HOST}
+      port: 6379
     mongodb:
       uri: ${MONGODB_URI}
       auto-index-creation: true
-    redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      timeout: 300000
-      password: ${REDIS_PASSWORD}
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/crop_management_db?appName=Cluster0}
+    auto-index-creation: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
+  kafka:
+    consumer:
+      group-id: crop-management-group
+      properties:
+        spring.json.trusted.packages: com.i4u.synthi_ai.*
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      properties: null
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+  application:
+    name: crop-management-service
   cloud:
     consul:
       host: consul.synthi-ai.org
@@ -28,29 +61,6 @@ spring:
         - version=1.0
         - environment=production
         - secure=true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${OAUTH2_ISSUER:https://oauth2-server.synthi-ai.com}
-          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      properties: null
-    consumer:
-      group-id: crop-management-group
-      properties:
-        spring.json.trusted.packages: com.i4u.synthi_ai.*
-    listener:
-      concurrency: 3
-  task:
-    execution:
-      pool:
-        core-size: 10
-        max-size: 20
-        queue-capacity: 100
-        keep-alive: 60s
 app:
   kafka:
     topics:
@@ -71,16 +81,38 @@ app:
           alerts: proximity.alerts.triggered
         satellite:
           images: satellite.images.processed
+      verification:
+        results: crop-management.verification.completed
+        failed: crop-management.verification.failed
     dlq:
       suffix: .dlq
       retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
 minio:
   url: ${MINIO_URL}
   access-key: ${MINIO_ACCESS_KEY}
   secret-key: ${MINIO_SECRET_KEY}
   bucket-name: ${MINIO_BUCKET_NAME:crops}
+cache:
+  ttl:
+    farm: 3600
+    crop: 86400
+    plantation: 3600
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://farmstomarket.io,https://www.farmstomarket.io,https://app.farmstomarket.io}
   allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
@@ -106,18 +138,6 @@ management:
         http.server.requests: true
       sla:
         http.server.requests: 50ms, 100ms, 200ms, 500ms
-resilience4j:
-  circuitbreaker:
-    instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 5s
 logging:
   level:
     root: WARN
