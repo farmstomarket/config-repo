@@ -1,0 +1,101 @@
+spring:
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://20.116.218.195:27017/storage_db}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000
+      connect-timeout: 2000
+      repositories:
+        enabled: false
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600
+      cache-null-values: false
+  kafka:
+    consumer:
+      group-id: ${spring.application.name}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://20.116.218.195:9020/.well-known/jwks.json}
+  main:
+    allow-bean-definition-overriding: true
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /api/v1
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: 1024
+app:
+  kafka:
+    topic:
+      lot-created: lot.created
+      lot-exited: lot.exited
+      alert-triggered: alert.triggered
+      reservation-accepted: reservation.accepted
+    consumer-topics:
+      harvest-completed: crop.harvest.completed
+    topics:
+      storage:
+        warehouse:
+          capacity:
+            warning: warehouse.capacity.warning
+          status:
+            changed: warehouse.status.changed
+    dlq:
+      suffix: .dlq
+      max-retries: 3
+  webhook:
+    svix:
+      api-key: ${SVIX_API_KEY}
+      endpoint: ${SVIX_ENDPOINT:https://webhooks.synthi-ai.org}
+      app-id: ${SVIX_APP_ID:app_1234567890}
+    events: lot.created,warehouse.near-full,lot.expired,reservation.created,warehouse.updated,warehouse.deleted,warehouse.status-changed,alert.triggered
+  services:
+    notification: ${NOTIFICATION_SERVICE_URL:http://notification-service/api/v1}
+    harvest: ${HARVEST_SERVICE_URL:http://harvest-management-service/api/v1}
+    crop: ${CROP_SERVICE_URL:http://crop-management-service/api/v1}
+  business:
+    warehouse:
+      capacity:
+        warning-threshold: ${WAREHOUSE_WARNING_THRESHOLD:0.85}
+        critical-threshold: ${WAREHOUSE_CRITICAL_THRESHOLD:0.95}
+        info-threshold: ${WAREHOUSE_INFO_THRESHOLD:0.80}
+    alert:
+      thresholds:
+        capacity:
+          info: ${ALERT_CAPACITY_INFO:80.0}
+          warning: ${ALERT_CAPACITY_WARNING:90.0}
+          critical: ${ALERT_CAPACITY_CRITICAL:95.0}
+        environmental:
+          deviation:
+            warning: ${ALERT_ENV_WARNING:10.0}
+            critical: ${ALERT_ENV_CRITICAL:20.0}
+      escalation:
+        hours-threshold: ${ALERT_ESCALATION_HOURS:24}
+      upcoming-exit:
+        days-threshold: ${UPCOMING_EXIT_DAYS:5}
+        notification-threshold: ${UPCOMING_EXIT_NOTIFICATION_DAYS:2}
+    auto:
+      store:
+        enabled: ${AUTO_STORE_ENABLED:false}
+        default-storage-months: ${DEFAULT_STORAGE_MONTHS:3}
+  security:
+    allowed-origins: ${ALLOWED_ORIGINS:*}
+    required-scopes:
+      warehouse:
+        read: warehouse.read
+        write: warehouse.write
+      lot:
+        read: lot.read
+        write: lot.manage
+      reservation:
+        read: reservation.read
+        write: reservation.create

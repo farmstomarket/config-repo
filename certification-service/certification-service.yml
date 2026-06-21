@@ -1,0 +1,51 @@
+server:
+  port: 9004
+spring:
+  datasource:
+    url: jdbc:postgresql://37.60.239.221:5433/certification_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+    redis:
+      host: 37.60.239.221
+      port: 6379
+      timeout: 300000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER:http://oauth2-service:9000}
+  kafka:
+    consumer:
+      group-id: certification-service-group
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+        keep-alive: 60s
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s

@@ -1,0 +1,47 @@
+server:
+  port: 9012
+spring:
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/imagery_satellite_db?appName=Cluster0}
+    auto-index-creation: true
+  kafka:
+    consumer:
+      group-id: imagery-satellite-group
+    topics:
+      imagery-request:
+        name: ${KAFKA_TOPIC_IMAGERY_REQUEST:imagery.plantation.requested}
+        partitions: ${KAFKA_TOPIC_IMAGERY_REQUEST_PARTITIONS:3}
+        replication-factor: ${KAFKA_TOPIC_IMAGERY_REQUEST_REPLICATION:1}
+      imagery-response:
+        name: ${KAFKA_TOPIC_IMAGERY_RESPONSE:imagery.plantation.processed}
+        partitions: ${KAFKA_TOPIC_IMAGERY_RESPONSE_PARTITIONS:3}
+        replication-factor: ${KAFKA_TOPIC_IMAGERY_RESPONSE_REPLICATION:1}
+app:
+  kafka:
+    consumer-topics:
+      plantation-created: crop.plantation.created
+      harvest-completed: crop.harvest.completed
+      imagery-requested: imagery.plantation.requested
+minio:
+  url: ${MINIO_URL:http://20.116.218.195:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket-name: ${MINIO_BUCKET_NAME:satellite-images}
+satellite:
+  providers:
+    mapbox:
+      api-key: ${MAPBOX_API_KEY:}
+      enabled: ${MAPBOX_ENABLED:true}
+    yandex:
+      api-key: ${YANDEX_API_KEY:}
+      enabled: ${YANDEX_ENABLED:true}
+  image:
+    max-width: ${SATELLITE_IMAGE_MAX_WIDTH:2048}
+    max-height: ${SATELLITE_IMAGE_MAX_HEIGHT:2048}
+    quality: ${SATELLITE_IMAGE_QUALITY:0.85}
+    format: ${SATELLITE_IMAGE_FORMAT:jpeg}
+    max-zoom-level: ${SATELLITE_IMAGE_MAX_ZOOM:18}
+    retry-attempts: ${SATELLITE_IMAGE_RETRY_ATTEMPTS:3}
+    timeout-seconds: ${SATELLITE_IMAGE_TIMEOUT:30}
+    tile-size: ${SATELLITE_IMAGE_TILE_SIZE:1024}
+    max-tiles-per-request: ${SATELLITE_IMAGE_MAX_TILES:9}

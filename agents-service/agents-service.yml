@@ -1,0 +1,112 @@
+server:
+  port: 9002
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 120000
+      max-lifetime: 180000
+      keepalive-time: 30000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+  cache:
+    type: redis
+    cache-names:
+    - buckets
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      timeout: 300000
+      repositories:
+        enabled: false
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 50MB
+      enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://oauth2-server.synthi-ai.com
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+          audiences:
+          - 976095ed-0368-4774-a383-eeef34901da7
+      client:
+        registration:
+          fusionauth:
+            client-id: ${FUSIONAUTH_CLIENT_ID}
+            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+            - openid
+            - email
+            - profile
+            - phone
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+        provider:
+          fusionauth:
+            issuer-uri:
+            - ${FUSIONAUTH_ISSUER-URI:https://oauth2-server.synthi-ai.com}
+            authorization-uri: https://oauth2-server.synthi-ai.com/oauth2/authorize
+            token-uri: https://oauth2-server.synthi-ai.com/oauth2/token
+            user-info-uri: https://oauth2-server.synthi-ai.com/oauth2/userinfo
+            jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+            user-name-attribute: phone
+fusionauth:
+  apiKey: ${FUSIONAUTH_API_KEY}
+  applicationId: ${FUSIONAUTH_APP_ID}
+  baseUrl: https://oauth2-server.synthi-ai.com
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  phone-number: ${TWILIO_PHONE_NUMBER}
+  verification:
+    service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}
+bucket4j:
+  enabled: true
+  filters:
+  - cache-name: buckets
+    url: /api/auth.*
+    rate-limits:
+    - bandwidth:
+        capacity: 5
+        time: 1
+        unit: minutes
+      cache-key: getHost()
+cors:
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:8080}
+  allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+  allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With}
+  exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
+  allow-credentials: true
+  max-age: 3600
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s

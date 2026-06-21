@@ -1,0 +1,140 @@
+server:
+  port: 8080
+  shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/json,text/html,text/plain
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  cache:
+    type: redis
+    cache-names:
+    - buckets
+    - categories
+    - products
+    - textSearchCache
+    - typeCategorySearchCache
+    - searchSuggestionsCache
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/marketplace_db}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:60000}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000}
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+    username: ${ELASTICSEARCH_USERNAME:}
+    password: ${ELASTICSEARCH_PASSWORD:}
+    connection-timeout: ${ELASTICSEARCH_CONNECTION_TIMEOUT:5s}
+    socket-timeout: ${ELASTICSEARCH_SOCKET_TIMEOUT:30s}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9000}
+  kafka:
+    consumer:
+      group-id: marketplace-service-group
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  search:
+    engine: ${SEARCH_ENGINE:elasticsearch}
+  kafka:
+    topics:
+      marketplace:
+        product:
+          published: marketplace.product.published
+          updated: marketplace.product.updated
+          status-changed: marketplace.product.status.changed
+          viewed: marketplace.product.viewed
+          sold: marketplace.product.sold
+          enrichment: marketplace.product.enrichment
+        order:
+          created: marketplace.order.created
+          updated: marketplace.order.updated
+        notification:
+          general: marketplace.notification.general
+      consumer:
+        harvest:
+          events: harvest-events
+        plantation:
+          created: crop.plantation.created
+          updated: crop.plantation.updated
+          status-changed: crop.plantation.status-changed
+        farm:
+          events: farm-events
+        farming-status:
+          updated: farming-status-updated
+          crop-health-changed: crop-health-changed
+          growth-stage-updated: growth-stage-updated
+          alert-triggered: farming-alert-triggered
+        livestock:
+          updated: livestock.entity.updated
+        crop:
+          updated: crop.entity.updated
+    default-replicas: ${KAFKA_DEFAULT_REPLICAS:3}
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+  circuitbreaker:
+    enabled: true
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+resilience4j:
+  circuitbreaker:
+    instances:
+      farmingStatusService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      livestockManagementService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      farmingStatusService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+      livestockManagementService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException

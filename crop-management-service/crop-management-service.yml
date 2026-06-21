@@ -1,0 +1,86 @@
+server:
+  port: 9011
+spring:
+  data:
+    redis:
+      cluster:
+        nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:60000}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000}
+      repositories:
+        enabled: false
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/crop_management_db?appName=Cluster0}
+    auto-index-creation: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://20.116.218.195:9020/.well-known/jwks.json}
+  kafka:
+    consumer:
+      group-id: crop-management-group
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+        keep-alive: 60s
+app:
+  kafka:
+    topics:
+      crop:
+        farm:
+          created: crop.farm.created
+          updated: crop.farm.updated
+          status-changed: crop.farm.status.changed
+        plantation:
+          created: crop.plantation.created
+          updated: crop.plantation.updated
+          status-changed: crop.plantation.status.changed
+      imagery:
+        request: imagery.satellite.request
+        response: imagery.satellite.response
+      consumer:
+        proximity:
+          alerts: proximity.alerts.triggered
+        satellite:
+          images: satellite.images.processed
+      verification:
+        results: crop-management.verification.completed
+        failed: crop-management.verification.failed
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s
+minio:
+  url: ${MINIO_URL:http://20.116.218.195:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket-name: ${MINIO_BUCKET_NAME:crops}
+cache:
+  ttl:
+    farm: 3600
+    crop: 86400
+    plantation: 3600

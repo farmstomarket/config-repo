@@ -1,0 +1,186 @@
+server:
+  port: 9040
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME:delivery_user}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+          region:
+            factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+  data:
+    redis:
+      cluster:
+        nodes:
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_1:7001}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_2:7002}
+        - ${REDIS_HOST:20.116.218.195}:${REDIS_PORT_3:7003}
+      password: ${REDIS_PASSWORD}
+      timeout: 60000
+      connect-timeout: 2000
+      lettuce:
+        pool:
+          max-active: 10
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 2
+  kafka:
+    consumer:
+      group-id: delivery-scheduling-group
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+    scheduling:
+      pool:
+        size: 5
+delivery:
+  scheduling:
+    time-slots:
+      duration-minutes: 60
+      start-hour: 8
+      end-hour: 18
+      days-ahead: 7
+    optimization:
+      max-deliveries-per-slot: 10
+      max-distance-km: 50
+      buffer-time-minutes: 15
+      priority-weights:
+        urgent: 1.0
+        standard: 0.7
+        flexible: 0.5
+    auto:
+      enabled: true
+      interval-minutes: 30
+      batch-size: 100
+app:
+  kafka:
+    topics:
+      delivery:
+        scheduled: delivery.delivery.scheduled
+        rescheduled: delivery.delivery.rescheduled
+        cancelled: delivery.delivery.cancelled
+        confirmed: delivery.delivery.confirmed
+        optimized: delivery.delivery.optimized
+        slot:
+          created: delivery.slot.created
+          updated: delivery.slot.updated
+          full: delivery.slot.full
+        route:
+          optimized: delivery.route.optimized
+          updated: delivery.route.updated
+      order:
+        confirmed: marketplace.order.confirmed
+        cancelled: marketplace.order.cancelled
+        updated: marketplace.order.updated
+      consumer:
+        group-id: delivery-scheduling-service
+        transport:
+          vehicle-available: transport.vehicle.available
+          driver-available: transport.driver.available
+        harvest:
+          completed: crop.harvest.completed
+        shipment:
+          ready: shipment.ready.pickup
+  services:
+    route-optimization:
+      grpc:
+        host: ${ROUTE_OPTIMIZATION_GRPC_HOST:route-optimization-service}
+        port: ${ROUTE_OPTIMIZATION_GRPC_PORT:9094}
+    transport-management:
+      grpc:
+        host: ${TRANSPORT_MANAGEMENT_GRPC_HOST:transport-management-service}
+        port: ${TRANSPORT_MANAGEMENT_GRPC_PORT:9092}
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9041}
+  client:
+    transport-management-service:
+      address: static://${TRANSPORT_MANAGEMENT_GRPC_HOST:transport-management-service}:${TRANSPORT_MANAGEMENT_GRPC_PORT:9092}
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+    route-optimization-service:
+      address: static://${ROUTE_OPTIMIZATION_GRPC_HOST:route-optimization-service}:${ROUTE_OPTIMIZATION_GRPC_PORT:9094}
+      negotiation-type: plaintext
+      max-inbound-message-size: 4MB
+      max-inbound-metadata-size: 8KB
+resilience4j:
+  circuitbreaker:
+    instances:
+      routeOptimizationService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+      transportService:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+  retry:
+    instances:
+      routeOptimizationService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException
+      transportService:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+        - java.io.IOException
+        - java.net.ConnectException

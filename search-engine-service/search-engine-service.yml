@@ -1,0 +1,66 @@
+server:
+  port: 9017
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  data:
+    mongodb:
+      uri: mongodb://20.116.218.195:27017/farmstomarket_db?replicaSet=rs0
+      database: farmstomarket_db
+      auto-index-creation: true
+    redis:
+      cluster:
+        nodes:
+        - 20.116.218.195:7001
+        - 20.116.218.195:7002
+        - 20.116.218.195:7003
+      password: ${REDIS_PASSWORD}
+      timeout: 60000
+      connect-timeout: 2000
+  kafka:
+    consumer:
+      group-id: ${spring.application.name}
+    listener:
+      ack-mode: manual_immediate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_SERVER_URL:http://20.116.218.195:9000}
+          jwk-set-uri: ${AUTH_SERVER_URL:http://20.116.218.195:9000}/.well-known/jwks.json
+app:
+  search:
+    meilisearch:
+      url: ${MEILISEARCH_URL:http://37.60.239.221:7700}
+      apiKey: ${MEILISEARCH_API_KEY:MASTER_KEY}
+    milvus:
+      enabled: ${MILVUS_ENABLED:true}
+      host: ${MILVUS_HOST:https://in03-f5b3b554df44d7e.serverless.aws-eu-central-1.cloud.zilliz.com}
+      port: ${MILVUS_PORT:19530}
+      username: ${MILVUS_USERNAME:db_f5b3b554df44d7e}
+      password: ${MILVUS_PASSWORD:By9+6aGylDBvWHw7}
+    hybrid:
+      text-weight: 0.7
+      vector-weight: 0.3
+      top-k: 100
+      vector-dimension: 384
+    discovery:
+      excluded-collections:
+      - system.indexes
+      - system.users
+      - fs.files
+      - fs.chunks
+      auto-refresh: true
+      refresh-interval: 300000
+    indexing:
+      batch-size: 1000
+      parallel-threads: 4
+      auto-create-indices: true
+    sync:
+      auto-start: true
+      retry-delay: 5000
+      enable-global-watch: true
+    initialization:
+      auto-create: true
+  cache:
+    ttl: 300

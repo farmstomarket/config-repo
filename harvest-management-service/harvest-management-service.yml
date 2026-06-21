@@ -1,0 +1,104 @@
+server:
+  port: ${SERVER_PORT:9033}
+spring:
+  data:
+    mongodb:
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:60000}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:2000}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://oauth2-identity-service}
+          jwk-set-uri: ${OAUTH2_JWKS_URI:http://oauth2-identity-service/.well-known/jwks.json}
+  kafka:
+    consumer:
+      group-id: harvest-management-group
+    listener:
+      concurrency: 3
+      ack-mode: MANUAL_IMMEDIATE
+      missing-topics-fatal: false
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+        keep-alive: 60s
+  mongodb:
+    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/harvest_db?appName=Cluster0}
+app:
+  kafka:
+    topics:
+      harvest:
+        planned: crop.harvest.planned
+        started: crop.harvest.started
+        completed: crop.harvest.completed
+        record:
+          created: crop.harvest.record.created
+          updated: crop.harvest.record.updated
+      notification:
+        events: notification.harvest.events
+      harvest-events: harvest-events
+      notifications: notification-events
+      consumer:
+        plantation:
+          created: crop.plantation.created
+          updated: crop.plantation.updated
+          status-changed: crop.plantation.status.changed
+          events: crop.plantation.events
+        weather:
+          events: weather.alert.triggered
+        farming-status:
+          events: farming.status.updated
+    dlq:
+      suffix: .dlq
+      retry-suffix: .retry
+      max-retries: 3
+      retry-delay: 5000
+    config:
+      retention-days: 7
+      compression-type: snappy
+      partitions: 3
+      replication-factor: 1
+      harvest-completed-retention-days: 30
+      notification-retention-days: 3
+      notification-partitions: 2
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+  services:
+    crop-management:
+      url: ${CROP_MANAGEMENT_SERVICE_URL:http://crop-management-service:8080}
+    farming-status:
+      url: ${FARMING_STATUS_SERVICE_URL:http://farming-status-service:8080}
+    weather:
+      url: ${WEATHER_SERVICE_URL:http://weather-service:8080}
+  minio:
+    url: ${MINIO_URL:http://20.116.218.195:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket-name: ${MINIO_BUCKET_NAME:harvest-management}
+    presigned-url-expiry: ${MINIO_PRESIGNED_URL_EXPIRY:3600}
+  file-upload:
+    max-file-size: ${FILE_UPLOAD_MAX_SIZE:10485760}
+    max-request-size: ${FILE_UPLOAD_MAX_REQUEST:52428800}
+    allowed-extensions: ${FILE_UPLOAD_ALLOWED_EXT:jpg,jpeg,png,gif,webp,pdf,doc,docx}
+    virus-scan-enabled: ${FILE_UPLOAD_VIRUS_SCAN:true}
+    encryption-enabled: ${FILE_UPLOAD_ENCRYPTION:true}
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  timelimiter:
+    instances:
+      defaultCircuitBreaker:
+        timeoutDuration: 5s

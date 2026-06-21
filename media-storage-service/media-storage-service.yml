@@ -1,0 +1,151 @@
+server:
+  port: ${SERVER_PORT:9016}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+spring:
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://20.116.218.195:27017/media_storage_db}
+      auto-index-creation: true
+    redis:
+      cluster:
+        nodes:
+        - ${REDIS_NODE_1:20.116.218.195:7001}
+        - ${REDIS_NODE_2:20.116.218.195:7002}
+        - ${REDIS_NODE_3:20.116.218.195:7003}
+      password: ${REDIS_PASSWORD}
+      timeout: 60000
+      connect-timeout: 2000
+      lettuce:
+        pool:
+          max-active: 10
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 2
+  kafka:
+    consumer:
+      group-id: media-storage-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWK_SET_URI:http://20.116.218.195:9020/.well-known/jwks.json}
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:1000MB}
+      max-request-size: ${MAX_REQUEST_SIZE:1100MB}
+      enabled: true
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://20.116.218.195:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket:
+    name: ${MINIO_BUCKET:media-files}
+    auto-create: true
+media:
+  processing:
+    max-concurrent-jobs: ${MAX_CONCURRENT_JOBS:5}
+    ffmpeg:
+      executable-path: ${FFMPEG_PATH:ffmpeg}
+      timeout-seconds: 300
+      temp-directory: ${TEMP_DIR:/tmp/media-processing}
+    thumbnail:
+      max-width: 300
+      max-height: 300
+      quality: 0.8
+    video:
+      max-duration-seconds: 3600
+      supported-formats:
+      - mp4
+      - avi
+      - mov
+      - wmv
+      - mkv
+      - flv
+      - webm
+      output-format: mp4
+      codec: h264
+      bitrate: 1000k
+      resolutions:
+      - 240
+      - 360
+      - 480
+      - 720
+      - 1080
+      frame-rate: 30
+    audio:
+      supported-formats:
+      - mp3
+      - wav
+      - aac
+      - ogg
+      - m4a
+      - flac
+      output-format: mp3
+      bitrate: 128k
+      sample-rate: 44100
+    image:
+      max-resolution: 4096x4096
+      supported-formats:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      - bmp
+      - tiff
+      output-format: jpg
+      quality: 85
+    document:
+      max-size-mb: 50
+      supported-formats:
+      - pdf
+      - doc
+      - docx
+      - txt
+      - rtf
+  storage:
+    base-url: ${MEDIA_BASE_URL:http://localhost:9016}
+    quotas:
+      default-user-quota-gb: 5
+      premium-user-quota-gb: 50
+    cleanup:
+      temp-files-retention-hours: 24
+      deleted-files-retention-days: 30
+app:
+  kafka:
+    consumer-topics:
+      imagery-processed: imagery.plantation.processed
+    topics:
+      media-uploaded: media.file.uploaded
+      media-processing: media.file.processing
+      media-accessed: media.file.accessed
+      media-deleted: media.file.deleted
+resilience4j:
+  circuitbreaker:
+    instances:
+      minio:
+        register-health-indicator: true
+        sliding-window-size: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: count_based
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+      mongodb:
+        register-health-indicator: true
+        sliding-window-size: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: count_based
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+  retry:
+    instances:
+      minio:
+        max-attempts: 3
+        wait-duration: 1s
+      mongodb:
+        max-attempts: 3
+        wait-duration: 500ms
