@@ -2,7 +2,7 @@ server:
   port: 9004
 spring:
   datasource:
-    url: jdbc:postgresql://20.116.218.195:5432/certification_db_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/certification_db_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

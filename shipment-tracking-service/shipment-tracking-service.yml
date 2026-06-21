@@ -25,7 +25,7 @@ spring:
       time-to-live: 3600000
       cache-null-values: false
   datasource:
-    url: jdbc:postgresql://20.116.218.195:5432/timescaledb_dev
+    url: jdbc:postgresql://20.116.218.195:${DB_PORT:5432}/timescaledb_dev
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
