@@ -5,7 +5,7 @@ spring:
     active: dev
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/farmstomarket_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}defbf81007e7793dd9cd0993eb48adc7479900a6b836dfb394f6bc1426bf4c40a08d8bd93836f7da6b26d7bf084bb774'@20.116.218.195:27017/farmstomarket_db_dev
       database: farmstomarket_db_dev
       auto-index-creation: true
     redis:
@@ -14,7 +14,7 @@ spring:
         - 20.116.218.195:7001
         - 20.116.218.195:7002
         - 20.116.218.195:7003
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}66e34caf6e22d5dd654c7cd3b25d2d3e4f020e71004123556425518f8aff471f'
       timeout: 30000
       connect-timeout: 2000
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -64,7 +64,7 @@ app:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 19530
       username: ${MILVUS_USERNAME}
-      password: ${MILVUS_PASSWORD}
+      password: '{cipher}96d7ffb45b4b9c33ce6bce62bf97ed5b50ce24ed64f7ea7290ffc27cf039fcd709400ce946b04c8d1a7e2381c75986bb'
     hybrid:
       text-weight: 0.7
       vector-weight: 0.3

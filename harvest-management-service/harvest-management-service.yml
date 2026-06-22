@@ -4,11 +4,11 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/harvest_management_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}19242580f7621df447e78572fa6eea03a2f88a20cd8405bf76ac9f3c85bcc0fa53b194a12b29662b2adac6c341a5cd18'@20.116.218.195:27017/harvest_management_db_dev
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}a351bf2c10175629f6543e0584736f12313eb92a4f5d360c16abf32048cd0314'
       timeout: 30000
       connect-timeout: 2000
     consul:
@@ -54,7 +54,7 @@ spring:
         queue-capacity: 25
         keep-alive: 60s
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/harvest_db?appName=Cluster0}
+    uri: '{cipher}accd85b3fe737442b5e8348e67fa75ff92b9dac453948bd1cd46db2a2c576bdc66a0badee2bdd88f6ae8c8371b71f6246235855955729c46d5741eccfc912ed99c04b69ddb3e51ca510cd08061f134496ae381a7f53c33afd0b3e5a7aa8cddabc8c0b8ab89b301efebe0a715564966aaf503381411e09431f75a5b709db287b3a0cdd0a90cda5082befc8d5618be5c7c'
   application:
     name: harvest-management-service
   cloud:
@@ -136,8 +136,8 @@ app:
       url: ${WEATHER_SERVICE_URL:http://weather-service:8080}
   minio:
     url: ${MINIO_URL:http://20.116.218.195:9000}
-    access-key: ${MINIO_ACCESS_KEY:minioadmin}
-    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    access-key: '{cipher}2621833a7f825b58792bb4ec24be6c857d1ae9c1cec16b04393815b69cad9e07'
+    secret-key: '{cipher}7256dda7bb7c0b98ca6f624079b45e56d888bd0da927f971bb4907fc4f4ad7ed'
     bucket-name: ${MINIO_BUCKET_NAME:harvest-management}
     presigned-url-expiry: ${MINIO_PRESIGNED_URL_EXPIRY:3600}
   file-upload:

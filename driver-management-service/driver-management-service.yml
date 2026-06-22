@@ -3,13 +3,13 @@ spring:
     name: driver-management-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/driver_management_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}db671bfe258600bce21402b237f8ea5fe2aff423ba143609f8bf9c383d654de78b8f8dd54bc47c10e9c39a7115f16cc9'@20.116.218.195:27017/driver_management_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}5951c32833e3d780a48154bf67fe04ffbaf60827a2d6a3f7b0a6c374dfbbe4be'
   kafka:
     consumer:
       group-id: driver-management-group

@@ -4,7 +4,7 @@ spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: '{cipher}da83decc14b27fbbf5e1a5a51869b5b4bdd1ddf80ee8a0fa57399c5131f6351069cd2c7b8bf7415aa146f4248b8fb004'
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -26,7 +26,7 @@ spring:
         enabled: false
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: '{cipher}53a37b507ec90f4bc4d9743cf2176f9cd9a9c51ce343df07aa1557f1a2108cff'
       timeout: 2000ms
       database: ${REDIS_DATABASE:0}
       lettuce:
@@ -65,8 +65,8 @@ spring:
 storage:
   minio:
     endpoint: ${MINIO_ENDPOINT:http://20.116.218.195:9000}
-    access-key: ${MINIO_ACCESS_KEY:minioadmin}
-    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    access-key: '{cipher}40be809026f2b4747c30409b4513c9fb94460c3d393702deafcd3d41850cb097'
+    secret-key: '{cipher}0c0518b28022fa2e635babbf6d84d171a1890c7b84f23d0d3db8e76b08de13e1'
     bucket-name: ${MINIO_BUCKET_NAME:legal-documents}
     legal-documents-prefix: legal-documents/
 messaging:

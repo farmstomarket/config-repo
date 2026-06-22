@@ -7,7 +7,7 @@ spring:
     name: metrics-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/metrics_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}4cc641f48e671b7ae7e2217f34a3e5fa273cadf38d1f0d80afc7c2dcd94b6526dff358ad927c1f5195f787bbedd603fc'@20.116.218.195:27017/metrics_dev
       auto-index-creation: true
   cache:
     cache-names: metrics,dashboards,alerts

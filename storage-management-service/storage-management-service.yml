@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/storage_management_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}825335a899f184137979a2d2087f64350faa804c1464d29f8ad2f03cb2ed1c1a133601783eb45a3eecbf964da2fcef50'@20.116.218.195:27017/storage_management_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -10,7 +10,7 @@ spring:
       connect-timeout: ${REDIS_CONNECT_TIMEOUT:3000}
       repositories:
         enabled: false
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}8f5f9e7e72eaa7d98a5c5e32d6ba87556916578212f39eb77757ef36c49d5fce'
       lettuce:
         pool:
           max-active: ${REDIS_POOL_MAX_ACTIVE:8}

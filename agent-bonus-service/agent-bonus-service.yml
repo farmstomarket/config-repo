@@ -14,7 +14,7 @@ spring:
   datasource:
     url: ${DB_URL}
     username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres_password}
+    password: '{cipher}9460c6c0c3a6af353c087ba8c1265f8b5cb1e165ba3d270ba47509bcd5b9f251edeec806e0bf8fd1219572b87b9ab77b'
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: AgentBonusServiceHikariCP
@@ -47,7 +47,7 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: '{cipher}7fe385deebbc3b1d256ba4ab30e5e87f65e2b4b985f666e19811975084d99ff0'
       database: ${REDIS_DATABASE:1}
       timeout: ${REDIS_TIMEOUT:5000ms}
       lettuce:

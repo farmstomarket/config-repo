@@ -2,7 +2,7 @@ server:
   port: 9012
 spring:
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/imagery_satellite_db?appName=Cluster0}
+    uri: '{cipher}cc733a3795ab6e07f596def567923e62dc071b96b4da4b1cc10c3ef0eb657adfeb2a62e02d8b23f41915859e79033d200e03e0bc2553e7a2c20acf34f159506508023c9d1f6dc9a92b493ed98f1f2a1753f517db973f9d68a828e0b819964c26b98be517bf28bef89ed42a84891d366f9afe326c5f1b9a937b6d216bb10a15ae2d13c66088eafdb8a0f5cd79ee5a0c03'
     auto-index-creation: true
   kafka:
     consumer:
@@ -25,7 +25,7 @@ spring:
     name: imagery-satellite-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/imagery_satellite_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}eebc33e0bb31cd81dbd63df302eb424e5a6b5901768d0b572c6407bd3dd627344dd610074bf54ae7f534ea5d6f4dca9c'@20.116.218.195:27017/imagery_satellite_db_dev
   cloud:
     consul:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -66,8 +66,8 @@ app:
 
 minio:
   url: https://20.116.218.195:9000
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
+  access-key: '{cipher}3d0cc4029aeafc225e7f0a248989461e3aeef4b61c6b5f9469e1f01c9a4081b4'
+  secret-key: '{cipher}68fd833cea9210f2bd11e5147a1c5851bd59e2c433555d543902ef051a6ef9cc'
   bucket-name: satellite-images-dev
 satellite:
   providers:

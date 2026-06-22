@@ -14,12 +14,12 @@ spring:
     - buckets
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/marketplace_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}5e1559412494abb4373b75cbc1e74f948124f30edbe049ec426dc31a9fe685b833160192a9f9eb4f657aa69e46eed4f2'@20.116.218.195:27017/marketplace_db_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}2f795a6378d716f2fe72c7085f3516808a5ad05a7c3d94efcd8dc48ea6be0fe5'
       timeout: 30000
       connect-timeout: 2000
   elasticsearch:

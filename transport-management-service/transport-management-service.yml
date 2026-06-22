@@ -3,13 +3,13 @@ spring:
     name: transport-management-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/transport_management_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}fca8467f887dfe5d3ed343f35eb7bda2fdf556f49502163a3644a80b46013176f5f32eea55011479f54ed5e70ab01cae'@20.116.218.195:27017/transport_management_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}f5c6d5ad5eff9c5e475c612fda767c606647f869de64ebd1d588b846c52e5ffb'
   kafka:
     consumer:
       group-id: transport-management-group

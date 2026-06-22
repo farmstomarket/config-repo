@@ -6,7 +6,7 @@ server:
     min-response-size: 1024
 spring:
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/notification_db?appName=Cluster0}
+    uri: '{cipher}cb8a4c44c1e054ac865e2eb1b871d5deb98a81938f9d4894b081a031cce807d581ddbc4f09ad8c7877a130e8feb654b76cff6bc0fc36e7ac2b36d2adc128ef9d789078568599d14a2f8a07eb05349f44df5583b3ab1c994a0ab66855642da1f93cfafcd9f58e4b0fd9c191103869359fa8412ebad0ee0caec07b8c044c24e7a9508e7c831aaed9b5b8adc9d7fd7daf09'
     auto-index-creation: true
   data:
     redis:
@@ -17,7 +17,7 @@ spring:
         - 20.116.218.195:7001
         - 20.116.218.195:7002
         - 20.116.218.195:7003
-      password: ${REDIS_PASSWORD:}
+      password: '{cipher}063f7b69d51073a8367d1ae18aa3aaa2b905d3ac67ab68f00855690db4914005'
       timeout: 60000
       connect-timeout: 2000
       lettuce:
@@ -118,13 +118,13 @@ notification:
       default-from: ${NOTIFICATION_EMAIL_AMAZON_SES_DEFAULT_FROM:no-reply@farmstomarket.io}
     twilio:
       enabled: ${NOTIFICATION_EMAIL_TWILIO_ENABLED:false}
-      api-key: ${NOTIFICATION_EMAIL_TWILIO_API_KEY:}
+      api-key: '{cipher}4e68679b23511967f8222934ea775d761ba147685b5e2df334b8c57ceba0068672c8948c8b5d32059ab28a79af9590f986613dbc14d62b38db2241b7c84a5144'
       default-from: ${NOTIFICATION_EMAIL_TWILIO_DEFAULT_FROM:no-reply@farmstomarket.io}
   sms:
     twilio:
       enabled: ${NOTIFICATION_SMS_TWILIO_ENABLED:false}
       account-sid: ${NOTIFICATION_SMS_TWILIO_ACCOUNT_SID:}
-      auth-token: ${NOTIFICATION_SMS_TWILIO_AUTH_TOKEN:}
+      auth-token: '{cipher}41db4aac5dc1f2199f3f2c054c404a9bb56d9d9a790cbb01f5c600c2e878392e033c44a795b88e5b25c32f90dd0f88a5486e320ffd4572b8cc0af0fb52cbabbb'
       phone-number: ${NOTIFICATION_SMS_TWILIO_PHONE_NUMBER:}
     sinch:
       enabled: ${NOTIFICATION_SMS_SINCH_ENABLED:false}
@@ -170,7 +170,7 @@ notification:
       enabled: ${NOTIFICATION_SOCIAL_WHATSAPP_ENABLED:false}
       twilio:
         account-sid: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_ACCOUNT_SID:}
-        auth-token: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_AUTH_TOKEN:}
+        auth-token: '{cipher}897464c5b016f1511aeceadc1dc27ea94ea0a21aded2da5cfcd74fe6f65ea1e692e3824b94585445e609586d616d63772cd16a12156217840a078caca30cea21'
         phone-number: ${NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_PHONE_NUMBER:}
       business:
         access-token: ${NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCESS_TOKEN:}
@@ -180,7 +180,7 @@ notification:
     twilio:
       enabled: ${NOTIFICATION_VOICE_TWILIO_ENABLED:false}
       account-sid: ${NOTIFICATION_VOICE_TWILIO_ACCOUNT_SID:}
-      auth-token: ${NOTIFICATION_VOICE_TWILIO_AUTH_TOKEN:}
+      auth-token: '{cipher}75cf6dd6a062dd6986dfda0593a3dfac076d924dd0b28da63116a6d4e4a59171147286d9a5b10b63cc5c524d7ca53048f6cd80cbf7eb9d30262d3100dd49826a'
       phone-number: ${NOTIFICATION_VOICE_TWILIO_PHONE_NUMBER:}
       twiml-url: ${NOTIFICATION_VOICE_TWILIO_TWIML_URL:}
 security:
@@ -334,7 +334,7 @@ sms:
   provider: twilio
   twilio:
     account-sid: ${TWILIO_ACCOUNT_SID}
-    auth-token: ${TWILIO_AUTH_TOKEN}
+    auth-token: '{cipher}ee92f185b8896d18d2de33445a4d5c540a8a5b4ec34c15ead51adccf7a906790c0da2df73a1f2f7c1158d1c433c59dfee15d91ecc1f5e28aa0463c9f9c2ba372'
     phone-number: ${TWILIO_PHONE_NUMBER}
     messaging-service-sid: ${TWILIO_MESSAGING_SERVICE_SID}
 push:

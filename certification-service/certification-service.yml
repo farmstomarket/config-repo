@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/certification_db_dev
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: '{cipher}5759e3a1ee08a41d8c1531f2b7c3290eeda61f82c4d2785428c77ca5e80e95a772a8ce5b787f29e927c04ed189ab0dd1'
     driver-class-name: org.postgresql.Driver
     jpa:
       database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -30,7 +30,7 @@ spring:
         registration:
           fusionauth:
             client-id: ${FUSIONAUTH_CLIENT_ID}
-            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
+            client-secret: '{cipher}5e73238f2afa715308f937a82a660ee2dea0278997916197c8f10d4b0f54b781a542810e3791c49df7b59df679dc40126e975218d438d372a190b7cf230fb603'
             authorization-grant-type: authorization_code
             scope:
             - openid
@@ -76,7 +76,7 @@ spring:
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}250aa2d8116c2553512b9af0b6213692b9f1ab8deb7f31fdcc7a7f8f5246790b'
       timeout: 300000
   cloud:
     consul:

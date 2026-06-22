@@ -6,7 +6,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/media_storage_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}210d8631932413727dcdf6d03d6157c07a1c9ff24aab1af5d563208fab0ab1e5f88ae8857cc769aa5a9354560375a7ed'@20.116.218.195:27017/media_storage_db_dev
       auto-index-creation: true
     redis:
       cluster:
@@ -14,7 +14,7 @@ spring:
         - ${REDIS_NODE_1:20.116.218.195:7001}
         - ${REDIS_NODE_2:20.116.218.195:7002}
         - ${REDIS_NODE_3:20.116.218.195:7003}
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}dc5b3a5e7294088405d8f3d46c34a3ae19b1e03bf74bd0fa088592b539276878'
       timeout: 30000
       connect-timeout: 2000
       lettuce:
@@ -65,8 +65,8 @@ spring:
         - environment=development
 minio:
   endpoint: https://20.116.218.195:9000
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
+  access-key: '{cipher}8ccb1476737d0162021c99626cec64a0ef70e682ddf17230dbd606a56a01e3ec'
+  secret-key: '{cipher}dcbe87308fe521193ffcb0050c91e4c93b3a84c480058a5ecb66999bebcfd9bb'
   bucket:
     name: media-files-dev
     auto-create: true

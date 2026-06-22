@@ -5,12 +5,12 @@ spring:
     name: proximity-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/proximity_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}aa1a4a523359385ed1f5da76ae8a44396e79f6eb14e0b705ea976b47db67e8b080e803442c7a67f35af1e3876ac90e99'@20.116.218.195:27017/proximity_db_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}fa4701626dcfb762794d5299984ede88f31fcf53fbee9e8883caeb97870fcb6b'
       timeout: 30000
       connect-timeout: 2000
   kafka:
@@ -66,7 +66,7 @@ axon:
     event-store:
       connections:
         default:
-          uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/proximity_events_dev
+          uri: mongodb://${MONGO_USERNAME}:'{cipher}01880aa5e48d79e37c5cd776fc90699190fdfc1632769a5eae4bb6e3b05b20e87f3e980a8e2a552ac8b18b4b2b9d5a11'@20.116.218.195:27017/proximity_events_dev
 management:
   endpoints:
     web:

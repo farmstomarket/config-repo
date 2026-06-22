@@ -5,7 +5,7 @@ spring:
     redis:
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:6379}
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}d1b2ec3cb6e294a6b15947cc4dd653aa6b3b9899ec318a2429821e26738b4ac6'
       timeout: 60000
       connect-timeout: 2000
       repositories:
@@ -13,10 +13,10 @@ spring:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/crop_management_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}306bb0c8eb8e0d226ab3f1d0dcc37ee4bcd0c66d6d7b5e3ecc573715be4af9c63cebb766ea6d7d1e4072b549146e8057'@20.116.218.195:27017/crop_management_db_dev
       auto-index-creation: true
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/crop_management_db?appName=Cluster0}
+    uri: '{cipher}3692600a4bf8c7e3cb666aed980ef307bdf2d546ff7693a8e324aead63ee11a9a5977a6c2e153a66f3953fd54eb84288df877e84dca19ff9a2f9f42e0fb8c2e262fafd5713bf2c37c451cec34a5f979987d53b8765ce368680edd558e9be853006c310829e78eff1a76c41c8a3c69f0b048f938f3f40c9a0b5320d42058e92a5a47a517a27fca924b81eaf19f4f54c62'
     auto-index-creation: true
   security:
     oauth2:
@@ -129,8 +129,8 @@ resilience4j:
         timeoutDuration: 10s
 minio:
   url: https://20.116.218.195:9000
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
+  access-key: '{cipher}95aa0003db030c830e1297e96e23887212fd597b26a2b3f91380fe181f7b14c9'
+  secret-key: '{cipher}d34c479277737049ef856313c07b3ceb7e8f8fd34b0f20ad7e88c0c9d48aaf60'
   bucket-name: crops-dev
 cache:
   ttl:

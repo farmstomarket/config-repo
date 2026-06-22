@@ -15,7 +15,7 @@ spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: '{cipher}1c29575a13baee7204cc00eff48c267cef97adf2d82cdcfbbaa6bf37531b31d1d1cd334683649bfc0ee1bb4622dcbcb6'
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -55,7 +55,7 @@ spring:
         registration:
           fusionauth:
             client-id: ${FUSIONAUTH_CLIENT_ID}
-            client-secret: ${FUSIONAUTH_CLIENT_SECRET}
+            client-secret: '{cipher}034e91dcac1228ecd544feabdaa72b9d7805e0068e4bedfbd4d7dc273961364d9d90d39abd67f39ae93ad55c63a6ef748f9a6eca8f3e3af619844bc21489c3ef'
             authorization-grant-type: authorization_code
             scope:
             - openid
@@ -73,12 +73,12 @@ spring:
             jwk-set-uri: https://oauth2-server.synthi-ai.com/.well-known/jwks.json
             user-name-attribute: phone
 fusionauth:
-  apiKey: ${FUSIONAUTH_API_KEY}
+  apiKey: '{cipher}91de5cc8f33e1cbcd7a6bb0e3bb92ec0564c33bde70dd4dd7e35252e4879e9807d60bb258d6365e1de1ec34d3783d2fc14acae89739c81279cfa66c69fa265e186bb8f33a117201913733a8edff537cc'
   applicationId: ${FUSIONAUTH_APP_ID}
   baseUrl: https://oauth2-server.synthi-ai.com
 twilio:
   account-sid: ${TWILIO_ACCOUNT_SID}
-  auth-token: ${TWILIO_AUTH_TOKEN}
+  auth-token: '{cipher}8d299b8814cd859543d034faf6553f0db7ee7c5d85c26c2bd9de7c7d25a78bd9a284468a127859fe664096f444e5025466d6719dddc88d6a9e8d707adc48aca8'
   phone-number: ${TWILIO_PHONE_NUMBER}
   verification:
     service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}

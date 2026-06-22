@@ -7,11 +7,11 @@ spring:
   data:
     mongodb:
       auto-index-creation: true
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/farming_status_db_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}d957e7d899e512bf346be38753c92f7757fb049452ed025f876d7bfaeb8a85c81a2c127924fb6429529a25971d6add1c'@20.116.218.195:27017/farming_status_db_dev
     redis:
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:20.116.218.195:7001,20.116.218.195:7002,20.116.218.195:7003}
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}e37bbe01586ecaaf292cc9adbd6ac9cf0d6c5e42525df923fc9c195f28285947'
       timeout: 30000
       connect-timeout: 2000
       repositories:
@@ -40,7 +40,7 @@ spring:
       include-binding-errors: always
       include-message: always
   mongodb:
-    uri: ${MONGODB_URI:mongodb+srv://farmstomarket-cluster:c9tPor0Iqm8DqUbE@cluster0.tjt6i4q.mongodb.net/farming_status_db?appName=Cluster0}
+    uri: '{cipher}cb70f5e68d1f0a5d1ecb3deeb0c11c6c7bdd011f3d0e0ff5a6a395d654246376c7a11fe4a9db409503f6ea58c9ac789fbf47cbf9f0a30928446e2b96d45c38aa1316063a3db7714dddf8aa20aeaf8e65041ae026142d2376d1a0193832491671d25e115153286f88849914f07b8c272b8ea5aebce533dd9152383af0c4ca9770f89c5a37103394d788d175eb7ba815cb'
   application:
     name: farming-status-service
   cloud:

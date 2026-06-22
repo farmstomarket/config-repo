@@ -4,7 +4,7 @@ spring:
   application:
     name: agent-verification-service
   mongodb:
-    uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/agent_verification_db}
+    uri: '{cipher}712ca8857b2089143e4dd21d3c37106eac67a5540c47c789092b143ead086333264ba4811607aa5739e16358830e60f828600709525ffdaa7c3e941765d2c6bb0a8e991ab0cb3b2fcd79f33a595ad5e4e8ae2456935497ac252dd25e080a9075bec8881fbbfb6f67705c19551d56d807986db45369bb3e926d9a7b0f372d1f0da8d8bce32068a9fa3d0f47afee1fe8fc'
     auto-index-creation: true
   kafka:
     consumer:

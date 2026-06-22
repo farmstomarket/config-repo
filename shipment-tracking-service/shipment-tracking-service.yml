@@ -3,13 +3,13 @@ spring:
     name: shipment-tracking-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/shipment_tracking_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}5d5d0e6fd4874c9f88907976353286cba7b73bb1915e28d474f0238f8f026f91402dec14b1e220de6c42fb14184759d1'@20.116.218.195:27017/shipment_tracking_dev
       auto-index-creation: true
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
       timeout: 2000
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}091e2673207af53dd82a453eb2b936ef1531c1b6267d008f8e66e14aa3908b90'
   kafka:
     consumer:
       group-id: shipment-tracking-group
@@ -27,7 +27,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/timescaledb_dev
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: '{cipher}4aefb4c9acb22d5569de2d15e368e9030ca941d1c35d22a99c3877ea71ba67ac04ffc2ad125dedc2195da3194aeba12b'
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5

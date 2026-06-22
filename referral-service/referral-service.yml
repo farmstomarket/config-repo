@@ -14,7 +14,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/referral_db_dev
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: '{cipher}a51da0a3d4b6c6d0d9dd922e2accfcb7c9e9a0a5704f5ef619c36825f5b993b466ea3cad751425801d6eac5da39e0a08'
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: ReferralServiceHikariCP-Dev
@@ -56,7 +56,7 @@ spring:
         enabled: false
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}948844f4aa9dc3d3e49bd0079da464b36a74c8c746fc481576bf488b02751f56'
       database: 0
       timeout: 5000ms
       lettuce:

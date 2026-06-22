@@ -64,7 +64,7 @@ spring:
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
       port: 6379
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}cdffe2c38d4674ab51b718c962d501c76c462fe18ec73cce8c112e57559a0892'
       timeout: 2000ms
       lettuce:
         pool:

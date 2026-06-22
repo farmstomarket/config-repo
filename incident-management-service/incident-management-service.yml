@@ -5,7 +5,7 @@ spring:
     name: incident-management-service
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@20.116.218.195:27017/incident_management_dev
+      uri: mongodb://${MONGO_USERNAME}:'{cipher}4349d0ad4969576c0ac583d65a975edfca2627e005d71aa9b33b233a6b973b33ca1f6047a51e7384144dfa4cd0b83069'@20.116.218.195:27017/incident_management_dev
       database: incident_management_dev
     redis:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -16,7 +16,7 @@ spring:
           max-active: 4
           max-idle: 4
           min-idle: 0
-      password: ${REDIS_PASSWORD}
+      password: '{cipher}9c7d8d1d19c81866ba6cc473b5adddb04ae7d10d0a0225512e10faf329929b71'
   kafka:
     consumer:
       group-id: incident-management-service
