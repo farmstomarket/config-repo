@@ -1,0 +1,207 @@
+name: Migrate secrets → {cipher}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (branch)'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, staging, production]
+      dry_run:
+        description: 'Dry run (no commit)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    env:
+      BRANCH_MAP_dev: develop
+      BRANCH_MAP_staging: staging
+      BRANCH_MAP_production: main
+
+    steps:
+      - name: Resolve branch name
+        id: branch
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          case "$ENV" in
+            dev)        echo "name=develop"  >> $GITHUB_OUTPUT ;;
+            staging)    echo "name=staging"  >> $GITHUB_OUTPUT ;;
+            production) echo "name=main"     >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Checkout config-repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.branch.outputs.name }}
+          token: ${{ secrets.GITOPS_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install cryptography
+        run: pip install cryptography --quiet
+
+      # ── Build secrets file from GitHub environment secrets ───────────────────
+      - name: Build secrets.env
+        env:
+          # Database
+          DB_PASSWORD:                                    ${{ secrets.DB_PASSWORD }}
+          DATABASE_PASSWORD:                              ${{ secrets.DB_PASSWORD }}
+          # MongoDB
+          MONGODB_URI:                                    ${{ secrets.MONGODB_URI }}
+          SPRING_DATA_MONGODB_URI:                        ${{ secrets.MONGODB_URI }}
+          MONGO_PASSWORD:                                 ${{ secrets.MONGO_PASSWORD }}
+          # Redis
+          REDIS_PASSWORD:                                 ${{ secrets.REDIS_PASSWORD }}
+          # Elasticsearch
+          ELASTICSEARCH_PASSWORD:                         ${{ secrets.ELASTICSEARCH_PASSWORD }}
+          # Milvus
+          MILVUS_PASSWORD:                                ${{ secrets.MILVUS_PASSWORD }}
+          # MinIO
+          MINIO_ACCESS_KEY:                               ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY:                               ${{ secrets.MINIO_SECRET_KEY }}
+          # FusionAuth
+          FUSIONAUTH_API_KEY:                             ${{ secrets.FUSIONAUTH_API_KEY }}
+          FUSIONAUTH_CLIENT_SECRET:                       ${{ secrets.FUSIONAUTH_CLIENT_SECRET }}
+          # OAuth2
+          GH_OAUTH2_CLIENT_SECRET:                        ${{ secrets.GH_OAUTH2_CLIENT_SECRET }}
+          GOOGLE_OAUTH2_CLIENT_SECRET:                    ${{ secrets.GOOGLE_OAUTH2_CLIENT_SECRET }}
+          # JWT
+          JWT_KEYSTORE_PASSWORD:                          ${{ secrets.JWT_KEYSTORE_PASSWORD }}
+          # Stripe
+          STRIPE_SECRET_KEY:                              ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_API_KEY:                                 ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET:                          ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_TEST_SECRET_KEY:                         ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_TEST_WEBHOOK_SECRET:                     ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          # PayPal
+          PAYPAL_CLIENT_SECRET:                           ${{ secrets.PAYPAL_CLIENT_SECRET }}
+          PAYPAL_WEBHOOK_SECRET:                          ${{ secrets.PAYPAL_WEBHOOK_SECRET }}
+          # Paystack
+          PAYSTACK_SECRET_KEY:                            ${{ secrets.PAYSTACK_SECRET_KEY }}
+          PAYSTACK_WEBHOOK_SECRET:                        ${{ secrets.PAYSTACK_WEBHOOK_SECRET }}
+          # Twilio
+          TWILIO_AUTH_TOKEN:                              ${{ secrets.TWILIO_AUTH_TOKEN }}
+          # Monitoring
+          GRAFANA_API_KEY:                                ${{ secrets.GRAFANA_API_KEY }}
+          MEILISEARCH_API_KEY:                            ${{ secrets.MEILISEARCH_API_KEY }}
+          SVIX_API_KEY:                                   ${{ secrets.SVIX_API_KEY }}
+          # Firebase / FCM
+          FCM_SERVER_KEY:                                 ${{ secrets.FCM_SERVER_KEY }}
+          FIREBASE_PRIVATE_KEY:                           ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          # Flutterwave
+          FLUTTERWAVE_SECRET_KEY:                         ${{ secrets.FLUTTERWAVE_SECRET_KEY }}
+          FLUTTERWAVE_ENCRYPTION_KEY:                     ${{ secrets.FLUTTERWAVE_ENCRYPTION_KEY }}
+          FLUTTERWAVE_WEBHOOK_SECRET:                     ${{ secrets.FLUTTERWAVE_WEBHOOK_SECRET }}
+          # Yellowcard
+          YELLOWCARD_API_KEY:                             ${{ secrets.YELLOWCARD_API_KEY }}
+          YELLOWCARD_WEBHOOK_SECRET:                      ${{ secrets.YELLOWCARD_WEBHOOK_SECRET }}
+          # Other
+          VAULT_TOKEN:                                    ${{ secrets.VAULT_TOKEN }}
+          PAYMENT_ENCRYPTION_KEY:                         ${{ secrets.PAYMENT_ENCRYPTION_KEY }}
+          SMTP_PASSWORD:                                  ${{ secrets.SMTP_PASSWORD }}
+          SPRING_MAIL_PASSWORD:                           ${{ secrets.SMTP_PASSWORD }}
+          # Notification — email
+          NOTIFICATION_EMAIL_SMTP_PASSWORD:               ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL_AMAZON_SES_ACCESS_KEY:       ${{ secrets.NOTIFICATION_EMAIL_AMAZON_SES_ACCESS_KEY }}
+          NOTIFICATION_EMAIL_AMAZON_SES_SECRET_KEY:       ${{ secrets.NOTIFICATION_EMAIL_AMAZON_SES_SECRET_KEY }}
+          NOTIFICATION_EMAIL_MAILGUN_API_KEY:             ${{ secrets.NOTIFICATION_EMAIL_MAILGUN_API_KEY }}
+          NOTIFICATION_EMAIL_MAILJET_API_KEY:             ${{ secrets.NOTIFICATION_EMAIL_MAILJET_API_KEY }}
+          NOTIFICATION_EMAIL_MAILJET_SECRET_KEY:          ${{ secrets.NOTIFICATION_EMAIL_MAILJET_SECRET_KEY }}
+          NOTIFICATION_EMAIL_SENDGRID_API_KEY:            ${{ secrets.NOTIFICATION_EMAIL_SENDGRID_API_KEY }}
+          NOTIFICATION_EMAIL_TWILIO_API_KEY:              ${{ secrets.TWILIO_AUTH_TOKEN }}
+          # Notification — chat
+          NOTIFICATION_CHAT_DISCORD_BOT_TOKEN:            ${{ secrets.NOTIFICATION_CHAT_DISCORD_BOT_TOKEN }}
+          NOTIFICATION_CHAT_SLACK_BOT_TOKEN:              ${{ secrets.NOTIFICATION_CHAT_SLACK_BOT_TOKEN }}
+          NOTIFICATION_CHAT_SLACK_SIGNING_SECRET:         ${{ secrets.NOTIFICATION_CHAT_SLACK_SIGNING_SECRET }}
+          NOTIFICATION_CHAT_TELEGRAM_BOT_TOKEN:           ${{ secrets.NOTIFICATION_CHAT_TELEGRAM_BOT_TOKEN }}
+          NOTIFICATION_CHAT_MICROSOFT_TEAMS_APP_PASSWORD: ${{ secrets.NOTIFICATION_CHAT_MICROSOFT_TEAMS_APP_PASSWORD }}
+          # Notification — SMS
+          NOTIFICATION_SMS_AMAZON_SNS_ACCESS_KEY:         ${{ secrets.NOTIFICATION_SMS_AMAZON_SNS_ACCESS_KEY }}
+          NOTIFICATION_SMS_AMAZON_SNS_SECRET_KEY:         ${{ secrets.NOTIFICATION_SMS_AMAZON_SNS_SECRET_KEY }}
+          NOTIFICATION_SMS_SINCH_API_KEY:                 ${{ secrets.NOTIFICATION_SMS_SINCH_API_KEY }}
+          NOTIFICATION_SMS_SINCH_SECRET:                  ${{ secrets.NOTIFICATION_SMS_SINCH_SECRET }}
+          NOTIFICATION_SMS_TWILIO_AUTH_TOKEN:             ${{ secrets.TWILIO_AUTH_TOKEN }}
+          # Notification — WhatsApp / Voice
+          NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCESS_TOKEN: ${{ secrets.NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCESS_TOKEN }}
+          NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          NOTIFICATION_VOICE_TWILIO_AUTH_TOKEN:           ${{ secrets.TWILIO_AUTH_TOKEN }}
+        run: |
+          python3 - << 'PYEOF'
+          import os
+          skip = {"", "__CHANGE_ME__", "__TODO__"}
+          lines = []
+          for k, v in os.environ.items():
+              if v and v not in skip:
+                  lines.append(f"{k}={v}")
+          # Write only the keys that are actually set
+          vars_needed = {
+              "DB_PASSWORD","DATABASE_PASSWORD",
+              "MONGODB_URI","SPRING_DATA_MONGODB_URI","MONGO_PASSWORD",
+              "REDIS_PASSWORD","ELASTICSEARCH_PASSWORD","MILVUS_PASSWORD",
+              "MINIO_ACCESS_KEY","MINIO_SECRET_KEY",
+              "FUSIONAUTH_API_KEY","FUSIONAUTH_CLIENT_SECRET",
+              "GH_OAUTH2_CLIENT_SECRET","GOOGLE_OAUTH2_CLIENT_SECRET",
+              "JWT_KEYSTORE_PASSWORD",
+              "STRIPE_SECRET_KEY","STRIPE_API_KEY","STRIPE_WEBHOOK_SECRET",
+              "STRIPE_TEST_SECRET_KEY","STRIPE_TEST_WEBHOOK_SECRET",
+              "PAYPAL_CLIENT_SECRET","PAYPAL_WEBHOOK_SECRET",
+              "PAYSTACK_SECRET_KEY","PAYSTACK_WEBHOOK_SECRET",
+              "TWILIO_AUTH_TOKEN",
+              "GRAFANA_API_KEY","MEILISEARCH_API_KEY","SVIX_API_KEY",
+              "FCM_SERVER_KEY","FIREBASE_PRIVATE_KEY",
+              "FLUTTERWAVE_SECRET_KEY","FLUTTERWAVE_ENCRYPTION_KEY","FLUTTERWAVE_WEBHOOK_SECRET",
+              "YELLOWCARD_API_KEY","YELLOWCARD_WEBHOOK_SECRET",
+              "VAULT_TOKEN","PAYMENT_ENCRYPTION_KEY",
+              "SMTP_PASSWORD","SPRING_MAIL_PASSWORD",
+              "NOTIFICATION_EMAIL_SMTP_PASSWORD",
+              "NOTIFICATION_EMAIL_AMAZON_SES_ACCESS_KEY","NOTIFICATION_EMAIL_AMAZON_SES_SECRET_KEY",
+              "NOTIFICATION_EMAIL_MAILGUN_API_KEY",
+              "NOTIFICATION_EMAIL_MAILJET_API_KEY","NOTIFICATION_EMAIL_MAILJET_SECRET_KEY",
+              "NOTIFICATION_EMAIL_SENDGRID_API_KEY","NOTIFICATION_EMAIL_TWILIO_API_KEY",
+              "NOTIFICATION_CHAT_DISCORD_BOT_TOKEN",
+              "NOTIFICATION_CHAT_SLACK_BOT_TOKEN","NOTIFICATION_CHAT_SLACK_SIGNING_SECRET",
+              "NOTIFICATION_CHAT_TELEGRAM_BOT_TOKEN","NOTIFICATION_CHAT_MICROSOFT_TEAMS_APP_PASSWORD",
+              "NOTIFICATION_SMS_AMAZON_SNS_ACCESS_KEY","NOTIFICATION_SMS_AMAZON_SNS_SECRET_KEY",
+              "NOTIFICATION_SMS_SINCH_API_KEY","NOTIFICATION_SMS_SINCH_SECRET",
+              "NOTIFICATION_SMS_TWILIO_AUTH_TOKEN",
+              "NOTIFICATION_SOCIAL_WHATSAPP_BUSINESS_ACCESS_TOKEN",
+              "NOTIFICATION_SOCIAL_WHATSAPP_TWILIO_AUTH_TOKEN",
+              "NOTIFICATION_VOICE_TWILIO_AUTH_TOKEN",
+          }
+          with open("/tmp/secrets.env", "w") as f:
+              for var in vars_needed:
+                  val = os.environ.get(var, "")
+                  if val and val not in skip:
+                      f.write(f"{var}={val}\n")
+          print(f"Written {sum(1 for _ in open('/tmp/secrets.env'))} secrets to /tmp/secrets.env")
+          PYEOF
+
+      - name: Run cipher migration
+        env:
+          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
+        run: |
+          ARGS="--secrets /tmp/secrets.env --repo ."
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          python3 scripts/cipher-migrate.py $ARGS
+
+      - name: Commit and push
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          git config user.name  "farmstomarket-bot"
+          git config user.email "devops@farms2market.com"
+          git add -A
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "security: migrate \${SECRET} references to {cipher} AES encryption"
+          git push
