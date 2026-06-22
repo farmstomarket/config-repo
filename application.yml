@@ -142,9 +142,15 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 cors:
-  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
-  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-origin-patterns: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: '*'
-  exposed-headers: '*'
-  allow-credentials: true
+  exposed-headers: Authorization,X-Correlation-Id
+  allow-credentials: false
   max-age: 3600
+
+authz:
+  opa:
+    url: ${OPA_URL:http://opa:8181}
+    policy-path: /v1/data/farms2market/authz/allow
+    timeout-ms: 100

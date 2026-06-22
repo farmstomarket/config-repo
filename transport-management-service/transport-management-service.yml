@@ -99,6 +99,9 @@ kafka:
     topics:
       driver-assigned: driver.assigned
       driver-available: driver.available
+      driver-status-changed: driver.status_changed
+      driver-location-updated: driver.location_updated
+      vehicle-breakdown: transport.vehicle.breakdown
       logistics-vehicle-needed: logistics.vehicle_needed
       incident-vehicle-breakdown: incident.vehicle_breakdown
       delivery-completed: logistics.delivery.completed
