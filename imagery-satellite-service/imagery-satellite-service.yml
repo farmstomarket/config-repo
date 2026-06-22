@@ -6,7 +6,7 @@ spring:
     auto-index-creation: true
   kafka:
     consumer:
-      group-id: imagery-satellite-group-dev
+      group-id: imagery-satellite-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
     topics:

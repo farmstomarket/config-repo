@@ -38,7 +38,7 @@ spring:
           - dev-marketplace-service
   kafka:
     consumer:
-      group-id: marketplace-service-group-dev
+      group-id: marketplace-service-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
         fetch.min.bytes: 1

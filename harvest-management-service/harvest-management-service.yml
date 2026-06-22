@@ -35,7 +35,7 @@ spring:
           - dev-harvest-management-service
   kafka:
     consumer:
-      group-id: harvest-management-group-dev
+      group-id: harvest-management-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
         max.poll.records: 100

@@ -20,7 +20,7 @@ spring:
       port: 6379
   kafka:
     consumer:
-      group-id: farming-status-service-dev
+      group-id: farming-status-service
       properties:
         spring.json.trusted.packages: com.i4u.synthiai.*
     listener:

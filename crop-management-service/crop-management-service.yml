@@ -25,7 +25,7 @@ spring:
           jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
   kafka:
     consumer:
-      group-id: crop-management-dev-group
+      group-id: crop-management-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
     listener:

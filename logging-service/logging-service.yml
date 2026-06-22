@@ -11,7 +11,7 @@ spring:
     password: ${ELASTICSEARCH_PASSWORD}
   kafka:
     consumer:
-      group-id: logging-service-dev
+      group-id: logging-service
       properties:
         spring.json.trusted.packages: com.agropastoral.*
     topics:

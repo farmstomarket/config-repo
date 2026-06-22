@@ -56,7 +56,7 @@ spring:
       port: 6379
   kafka:
     consumer:
-      group-id: delivery-scheduling-group-dev
+      group-id: delivery-scheduling-group
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
         enable.auto.commit: false
@@ -146,7 +146,7 @@ app:
         cancelled: marketplace.order.cancelled
         updated: marketplace.order.updated
       consumer:
-        group-id: delivery-scheduling-service-dev
+        group-id: delivery-scheduling-service
         transport:
           vehicle-available: transport.vehicle.available
           driver-available: transport.driver.available

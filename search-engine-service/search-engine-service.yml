@@ -21,7 +21,7 @@ spring:
       port: 6379
   kafka:
     consumer:
-      group-id: search-engine-service-dev
+      group-id: search-engine-service
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai
         spring.json.type.mapping: genericEntityEvent:com.i4u.synthi_ai.searchengineservice.applications.events.GenericEntityEvent

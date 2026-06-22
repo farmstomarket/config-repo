@@ -16,7 +16,7 @@ spring:
   kafka:
     bootstrap-servers: 20.116.218.195:9092
     consumer:
-      group-id: proximity-service-dev
+      group-id: proximity-service
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.proximityservice.domain.event
     producer: null

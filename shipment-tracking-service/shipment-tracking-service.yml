@@ -12,7 +12,7 @@ spring:
       password: ${REDIS_PASSWORD}
   kafka:
     consumer:
-      group-id: shipment-tracking-group-dev
+      group-id: shipment-tracking-group
       properties:
         spring.json.trusted.packages: com.i4u.*
     bootstrap-servers: 20.116.218.195:9092

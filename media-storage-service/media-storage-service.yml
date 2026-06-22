@@ -27,7 +27,7 @@ spring:
       port: 6379
   kafka:
     consumer:
-      group-id: media-storage-service-dev
+      group-id: media-storage-service
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.*
     bootstrap-servers: 20.116.218.195:9092

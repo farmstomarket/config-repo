@@ -19,7 +19,7 @@ spring:
       password: ${REDIS_PASSWORD}
   kafka:
     consumer:
-      group-id: incident-management-service-dev
+      group-id: incident-management-service
       enable-auto-commit: false
       properties:
         spring.json.trusted.packages: com.i4u.synthi_ai.incidentmanagmentservice
