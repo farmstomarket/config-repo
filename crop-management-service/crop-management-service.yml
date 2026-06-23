@@ -84,10 +84,10 @@ app:
 
 
       imagery:
-        request: imagery.satellite.request
+        request: imagery.plantation.requested
 
 
-        response: imagery.satellite.response
+        response: imagery.plantation.processed
 
 
       consumer:
