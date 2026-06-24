@@ -1,8 +1,9 @@
 server:
   port: 9001
+
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/agents_db_dev
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/farmstomarket_agents
     username: ${DB_USERNAME}
     password: '{cipher}ca39319523d6a8d817c8b591e855affdf0d9ffd66d107b9fb9e58bc874390819530b7f79d077d8cf871b59893b040fd9'
     driver-class-name: org.postgresql.Driver
@@ -16,14 +17,16 @@ spring:
       validation-timeout: 5000
       connection-test-query: SELECT 1
       leak-detection-threshold: 60000
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-    show-sql: true
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -31,53 +34,26 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-  cache:
-    type: redis
-    cache-names:
-    - buckets
+
   data:
     redis:
-      host: ${CONSUL_HOST:consul.synthi-ai.org}
-      port: 6379
-      timeout: 300000
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      database: 2
       repositories:
         enabled: false
       password: '{cipher}573d10ef45aeaa30d317077e11408b07c37597c10fedaffdb2dd406bd276e0bb'
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 50MB
-      enabled: true
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://20.116.218.195:9020
-          jwk-set-uri: http://20.116.218.195:9020/.well-known/jwks.json
+          issuer-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:https://oauth2-server.synthi-ai.com/.well-known/jwks.json}
           audiences:
-          - ${FUSIONAUTH_CLIENT_ID}
-      client:
-        registration:
-          fusionauth:
-            client-id: ${FUSIONAUTH_CLIENT_ID}
-            client-secret: '{cipher}01d74f649601c36dda3564665f322e38ff088cd8fd5b0d74945f3ef84aafbad2393afe7c2280dc845ceae14d1dd5d9675e1c0b4a5dd841955347eeb6e7cabc54'
-            authorization-grant-type: authorization_code
-            scope:
-            - openid
-            - email
-            - profile
-            - phone
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
-        provider:
-          fusionauth:
-            issuer-uri: https://20.116.218.195:9020
-            authorization-uri: https://20.116.218.195:9020/oauth2/authorize
-            token-uri: https://20.116.218.195:9020/oauth2/token
-            user-info-uri: https://20.116.218.195:9020/oauth2/userinfo
-            jwk-set-uri: https://20.116.218.195:9020/.well-known/jwks.json
-            user-name-attribute: phone
-  application:
-    name: agents-service
+            - ${FUSIONAUTH_APP_ID}
+
   cloud:
     consul:
       host: ${CONSUL_HOST:consul.synthi-ai.org}
@@ -87,54 +63,46 @@ spring:
       discovery:
         enabled: true
         service-name: agents-service
-        service-id: agents-service-dev
+        service-id: agents-service
         register: true
-        instance-id: agents-service-dev
+        instance-id: agents-service-${random.value}
         health-check-interval: 10s
         tags:
-        - version=1.0-dev
-        - environment=development
+          - version=1.0
+
 fusionauth:
   apiKey: '{cipher}b4dcabe48be74cb17ac5d9d102000b2c2c92616e2cabae686d7ee0bd35efbd51fbfc82c0c4dda85832595d9dbcc1c6998552039f27fed92e06ebd22d73e2e9c2be4120be4ad3144e97bf53172c74ca87'
   applicationId: ${FUSIONAUTH_APP_ID}
-  baseUrl: https://20.116.218.195:9020
+  baseUrl: ${FUSIONAUTH_BASE_URL:${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}}
+
 twilio:
   account-sid: ${TWILIO_ACCOUNT_SID}
   auth-token: '{cipher}7ebd17a056849ab00a70a55717a55a9ed27c52d79cf48d2eb24830b1320d1ff504983a79476e58f61adc6f6be42669ec9f4ed6ef0fd3330a7f7a68c799cb38f3'
-  phone-number: ${TWILIO_PHONE_NUMBER}
   verification:
     service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}
-bucket4j:
-  enabled: true
-  filters:
-  - cache-name: buckets
-    url: /api/v1/auth.*
-    rate-limits:
-    - bandwidth:
-        capacity: 10
-        time: 1
-        unit: minutes
-      cache-key: getHost()
+
+rate:
+  limit:
+    max-requests: 100
+    window-ms: 60000
+
 cors:
-  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:8080}
-  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:4200,https://app.farmstomarket.io}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: '*'
-  exposed-headers: '*'
-  allow-credentials: true
+  exposed-headers: Authorization,X-Correlation-Id
+  allow-credentials: false
   max-age: 3600
-  allowed-origins: http://localhost:3000,http://localhost:4200,https://dev-app.farmstomarket.io
+
 resilience4j:
   circuitbreaker:
     instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 50
-        permittedNumberOfCallsInHalfOpenState: 5
-        failureRateThreshold: 60
-        waitDurationInOpenState: 5s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 10s
+      fusionAuthService:
+        base-config: default
+        failure-rate-threshold: 30
+      twilioService:
+        base-config: default
+
 management:
   endpoints:
     web:
@@ -147,25 +115,19 @@ management:
         enabled: true
   tracing:
     sampling:
-      probability: 1.0
+      probability: 0.1
   metrics:
     tags:
       application: ${spring.application.name}
-      environment: development
     distribution:
       percentiles-histogram:
         http.server.requests: true
       sla:
-        http.server.requests: 50ms, 100ms, 200ms, 500ms
+        http.server.requests: 50ms,100ms,200ms,500ms
+
 logging:
   level:
-    root: DEBUG
-    org.springframework.cloud: DEBUG
-    org.springframework.kafka: DEBUG
-    org.apache.kafka: DEBUG
-    com.i4u.synthiai: DEBUG
-    org.springframework.security: DEBUG
-    com.twilio: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    root: INFO
+    com.i4u.synthi_ai: DEBUG
+    org.springframework.security: INFO
   config: classpath:logback-spring.xml
