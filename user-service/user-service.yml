@@ -1,8 +1,9 @@
 server:
   port: 9002
+
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/farmstomarket_users_dev
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5000}/farmstomarket_users
     username: ${DB_USERNAME}
     password: '{cipher}3d7032236b64e75640d412229f001bb5b7c202ad191db5f360848356e26e8dc00a4be4d23d9dcb6b2cb107545f4a7aa8'
     driver-class-name: org.postgresql.Driver
@@ -15,36 +16,30 @@ spring:
       keepalive-time: 30000
       validation-timeout: 5000
       connection-test-query: SELECT 1
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
       naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl
-        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     show-sql: false
     properties:
       hibernate:
         format_sql: true
         jdbc:
           batch_size: 20
-  cache:
-    type: redis
-    cache-names:
-    - buckets
+
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
       timeout: 2000ms
+      database: 1
       repositories:
         enabled: false
-      database: 1
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 50MB
-      enabled: true
+
   security:
     oauth2:
       resourceserver:
@@ -52,56 +47,39 @@ spring:
           issuer-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}
           jwk-set-uri: ${OAUTH2_JWK_SET_URI:https://oauth2-server.synthi-ai.com/.well-known/jwks.json}
           audiences:
-          - ${FUSIONAUTH_APP_ID}
-      client:
-        registration:
-          fusionauth:
-            client-id: ${FUSIONAUTH_CLIENT_ID}
-            client-secret: '{cipher}e90c1f3b22d92686ce1e99e5aa2b00c7ad7fb15e696c18a222e241855a5583155dc264a12accd0d8b987375bdf240ab5a04be2b127bfedb0ed1ff863de8c935a'
-            authorization-grant-type: authorization_code
-            scope:
-            - openid
-            - email
-            - profile
-            - phone
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
-        provider:
-          fusionauth:
-            authorization-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}/oauth2/authorize
-            token-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}/oauth2/token
-            user-info-uri: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}/oauth2/userinfo
-            jwk-set-uri: ${OAUTH2_JWK_SET_URI:https://oauth2-server.synthi-ai.com/.well-known/jwks.json}
-            user-name-attribute: phone
-  application:
-    name: user-service
+            - ${FUSIONAUTH_APP_ID}
+
   kafka:
     consumer:
       group-id: user-service-group
+
 fusionauth:
-  apiKey: '{cipher}891cfc03e60dd029ff5da7674d89f3519c431077e40f737720ca2e5fd702cd495ba3fe16912ee6e88047a98c1b5a46252138ef337fea15796067efdecec7920bc6e7312414379914906e19e5c2fa70bd'
-  applicationId: ${FUSIONAUTH_APP_ID}
-  baseUrl: ${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}
+  api-key: '{cipher}891cfc03e60dd029ff5da7674d89f3519c431077e40f737720ca2e5fd702cd495ba3fe16912ee6e88047a98c1b5a46252138ef337fea15796067efdecec7920bc6e7312414379914906e19e5c2fa70bd'
+  base-url: ${FUSIONAUTH_BASE_URL:${OAUTH2_ISSUER_URI:https://oauth2-server.synthi-ai.com}}
+  application-id: ${FUSIONAUTH_APP_ID}
+
 twilio:
   account-sid: ${TWILIO_ACCOUNT_SID}
   auth-token: '{cipher}deaf89da485552c3d83ffe687b2c148a8f6e32a73c58c388c67f1aa20f5ae2b7c5cab56f12935475f77ef07c4a5f25f14b04c2c81ae4045df3bee20929a23bff'
-  phone-number: ${TWILIO_PHONE_NUMBER}
   verification:
     service-sid: ${TWILIO_VERIFICATION_SERVICE_SID}
+
+rate:
+  limit:
+    max-requests: 100
+    window-ms: 60000
+
 cors:
-  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:*}
-  allowed-methods: ${CORS_ALLOWED_METHODS:*}
-  allowed-headers: ${CORS_ALLOWED_HEADERS:*}
-  exposed-headers: ${CORS_EXPOSED_HEADERS:*}
-  allow-credentials: true
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:4200,https://app.farmstomarket.io}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: '*'
+  exposed-headers: Authorization,X-Correlation-Id
+  allow-credentials: false
   max-age: 3600
+
 resilience4j:
   circuitbreaker:
     instances:
-      defaultCircuitBreaker:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
       authService:
         base-config: default
         failure-rate-threshold: 30
@@ -110,39 +88,22 @@ resilience4j:
       emailService:
         base-config: default
         wait-duration-in-open-state: 60s
-  timelimiter:
-    instances:
-      defaultCircuitBreaker:
-        timeoutDuration: 5s
+
 app:
   kafka:
     topics:
       user:
         created: user.created
-
-
-
         updated: user.updated
-
-
-
         deleted: user.deleted
-
-
-
         verified: user.verified
-
-
-
         password-changed: user.password.changed
-
-
-
     dlq:
       suffix: .dlq
       retry-suffix: .retry
       max-retries: 3
       retry-delay: 5000
+
 user-service:
   password:
     min-length: 10
@@ -157,9 +118,3 @@ user-service:
   session:
     timeout: 30m
     max-concurrent-sessions: 3
-  rate-limiting:
-    enabled: true
-    login-attempts: 20
-    login-window: 15m
-    registration-attempts: 10
-    registration-window: 1h
